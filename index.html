@@ -1,0 +1,2438 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ฟาร์มคำนามสุดสนุก 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#dff1c9; --ink:#1d3b2a; --card:#ffffff; --card-2:#f1f8ea; --card-ink:#1d3b2a; --line:#1d3b2a; --shadow:#173020;
+  --muted:#4f6b58; --leaf:#2f9e4f; --leaf-2:#46bd68; --leaf-d:#1f6b3a; --sun:#ffc83d; --chip:#fff1b8;
+  --good:#17803f; --good-bg:#d6f4df; --bad:#c43830; --bad-bg:#fde2df; --info-bg:#eaf6ff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f2418; --ink:#e9f7e6; --card:#1b3a29; --card-2:#234733; --card-ink:#eef9ec; --line:#5aa877; --shadow:#06120b;
+    --muted:#a6c9b0; --chip:#33523b; --good:#6ee79a; --good-bg:#14452a; --bad:#ff9087; --bad-bg:#4a1f1d; --info-bg:#173246;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f2418; --ink:#e9f7e6; --card:#1b3a29; --card-2:#234733; --card-ink:#eef9ec; --line:#5aa877; --shadow:#06120b;
+  --muted:#a6c9b0; --chip:#33523b; --good:#6ee79a; --good-bg:#14452a; --bad:#ff9087; --bad-bg:#4a1f1d; --info-bg:#173246;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0; color:var(--ink);
+  background:var(--bg) radial-gradient(1200px 500px at 50% -10%, rgba(255,255,255,.55), transparent 70%);
+  font-family:'Sarabun','Noto Sans Thai',system-ui,sans-serif; font-size:17px; line-height:1.5;
+}
+.emoji{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+button{font-family:inherit}
+
+/* ---------- layout ---------- */
+.app{max-width:1120px; margin:0 auto; padding:10px 12px 24px; display:grid; gap:12px; grid-template-columns:minmax(0,1fr)}
+.hud{grid-area:hud} .scene{grid-area:scene} .quiz{grid-area:quiz}
+@media (min-width:900px){
+  .app{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); grid-template-areas:"hud hud" "scene quiz"; gap:16px; padding:16px}
+}
+.card{
+  background:linear-gradient(180deg,var(--card),var(--card-2));
+  color:var(--card-ink); border:3px solid var(--line); border-radius:22px;
+  box-shadow:0 6px 0 var(--shadow), 0 14px 24px rgba(0,30,10,.18), inset 0 2px 0 rgba(255,255,255,.7);
+}
+
+/* ---------- HUD ---------- */
+.hud{padding:10px 12px 12px}
+.hud-top{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.brand{font-family:'Mali','Sarabun',sans-serif; font-weight:700; font-size:1.15rem; line-height:1.2}
+.brand small{display:block; font-family:'Sarabun',sans-serif; font-weight:400; font-size:.8rem; color:var(--muted)}
+.timer{
+  display:flex; align-items:center; gap:8px; padding:2px 16px; border-radius:999px;
+  background:linear-gradient(180deg,#ffe07a,#ffc02e); color:#3b2a00; border:3px solid #3b2a00;
+  box-shadow:0 4px 0 #3b2a00, inset 0 2px 0 rgba(255,255,255,.6);
+  font-weight:700; font-size:2.1rem; line-height:1.25; font-variant-numeric:tabular-nums;
+}
+.timer.low{background:linear-gradient(180deg,#ff7a70,#d6453d); color:#fff; border-color:#5b0f0b; box-shadow:0 4px 0 #5b0f0b}
+.timer.paused{opacity:.75}
+@media (prefers-reduced-motion:no-preference){ .timer.low{animation:pulse 1s ease-in-out infinite} }
+@keyframes pulse{50%{transform:scale(1.06)}}
+.bar{height:14px; border-radius:999px; background:rgba(127,127,127,.28); margin:10px 0; overflow:hidden; border:2px solid var(--line); box-shadow:inset 0 2px 3px rgba(0,0,0,.25)}
+.bar>i{display:block; height:100%; width:100%; background:linear-gradient(180deg,#7be08f,#2f9e4f); transition:width .3s linear}
+.bar.low>i{background:linear-gradient(180deg,#ff8f86,#c43830)}
+.chips{display:grid; grid-template-columns:repeat(5,1fr); gap:6px}
+.chip{position:relative; background:linear-gradient(180deg,#fff8d0,var(--chip)); color:#2c3a1d; border-radius:12px; padding:4px 4px; text-align:center; line-height:1.2; box-shadow:0 3px 0 rgba(0,0,0,.18)}
+:root[data-theme="dark"] .chip{color:#f2f7e8; background:var(--chip)}
+.chip span{display:block; font-size:.72rem; color:inherit; opacity:.75}
+.chip b{font-size:1.25rem}
+.chip.hit{background:linear-gradient(180deg,#ffd0cb,#ff9a92); color:#4a0f0a}
+.float{position:absolute; left:50%; top:-2px; transform:translateX(-50%); font-weight:700; font-size:1.2rem; color:var(--bad); pointer-events:none; text-shadow:0 1px 0 #fff}
+@media (prefers-reduced-motion:no-preference){ .float{animation:floatUp .9s ease-out forwards} }
+@keyframes floatUp{to{transform:translate(-50%,-30px); opacity:0}}
+
+/* ---------- scene ---------- */
+.scene{position:relative; overflow:hidden; min-height:270px; background:linear-gradient(180deg,#5db8f0 0%,#cdeeff 45%,#7ac55f 46%,#4c9f48 100%)}
+@media (min-width:900px){ .scene{min-height:500px} }
+.stage{position:absolute; inset:0}
+.stage canvas{display:block; width:100%; height:100%}
+.basket-chip{
+  position:absolute; top:10px; right:10px; z-index:3; display:flex; align-items:center; gap:6px;
+  background:linear-gradient(180deg,#fff,#eef7e6); color:#1d3b2a; border:3px solid #1d3b2a; border-radius:999px;
+  padding:0 12px 0 8px; font-weight:700; font-size:1.1rem; box-shadow:0 3px 0 #173020;
+}
+.basket-chip .ico{font-size:1.4rem; line-height:1.4}
+.lvl-ribbon{
+  position:absolute; top:10px; left:10px; z-index:3; padding:2px 12px; border-radius:999px;
+  background:linear-gradient(180deg,#7be08f,#2f9e4f); color:#fff; border:3px solid #173020; font-weight:700; font-size:.95rem; box-shadow:0 3px 0 #173020;
+}
+/* fallback (no WebGL) */
+.field{position:absolute; left:4%; right:4%; top:46%; bottom:10px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr); gap:6px 10px; z-index:2}
+.plot{position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-height:0; border-radius:14px}
+.plot.active{background:rgba(255,255,255,.3); box-shadow:inset 0 0 0 3px var(--sun)}
+.plant{position:relative; z-index:1; margin-bottom:-6px; line-height:1; height:1.1em; font-size:clamp(22px,6.5vw,40px)}
+.soil{width:90%; height:min(38%,34px); border-radius:50%; background:repeating-linear-gradient(100deg,#6b3f22 0 8px,#7d4b2a 8px 16px); border:2px solid #4a2a15}
+
+/* ---------- quiz ---------- */
+.quiz{padding:14px}
+.qhead{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; flex-wrap:wrap}
+.qno{background:var(--chip); color:#2c3a1d; border-radius:999px; padding:0 12px; font-weight:700; font-size:.95rem}
+:root[data-theme="dark"] .qno{color:#f2f7e8}
+.lvbadge{font-family:'Mali','Sarabun',sans-serif; font-weight:700; color:var(--leaf-d)}
+:root[data-theme="dark"] .lvbadge{color:#8fe0a8}
+.pips{display:flex; gap:5px; margin:2px 0 8px}
+.pips i{flex:1; height:9px; border-radius:99px; background:rgba(127,127,127,.3); border:2px solid var(--line)}
+.pips i.done{background:linear-gradient(180deg,#7be08f,#2f9e4f)}
+.pips i.cur{background:var(--sun)}
+.qtext{font-size:1.28rem; font-weight:700; line-height:1.45; margin:4px 0 12px; min-height:3.9rem}
+.opts{display:grid; grid-template-columns:1fr 1fr; gap:9px}
+.opts.long{grid-template-columns:1fr}
+.opt{
+  display:flex; align-items:center; gap:10px; min-height:58px; padding:8px 12px; text-align:left;
+  background:linear-gradient(180deg,#ffffff,#e9f3e0); color:#1d3b2a; border:3px solid var(--line); border-radius:16px;
+  font-size:1.08rem; font-weight:600; line-height:1.35; cursor:pointer;
+  box-shadow:0 5px 0 var(--shadow), inset 0 2px 0 rgba(255,255,255,.9);
+  transition:transform .08s, box-shadow .08s, background .15s;
+}
+:root[data-theme="dark"] .opt{background:linear-gradient(180deg,#2c523b,#234733); color:#eef9ec}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .opt{background:linear-gradient(180deg,#2c523b,#234733); color:#eef9ec} }
+.opt .ltr{
+  flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+  background:radial-gradient(circle at 30% 25%,#7be08f,#2f9e4f 70%); color:#fff; font-weight:700; font-size:1rem; box-shadow:0 2px 0 rgba(0,0,0,.3);
+}
+.opt:hover:not(:disabled){filter:brightness(1.05)}
+.opt:active:not(:disabled){transform:translateY(5px); box-shadow:0 0 0 var(--shadow)}
+.opt:focus-visible{outline:4px solid var(--sun); outline-offset:2px}
+.opt.right{background:linear-gradient(180deg,#e6fbec,var(--good-bg)); border-color:var(--good); color:#0f4d27}
+.opt.wrong{background:linear-gradient(180deg,#ffeceb,var(--bad-bg)); border-color:var(--bad); color:#6b1511; text-decoration:line-through; opacity:.8}
+.opt.wrong .ltr{background:var(--bad)}
+.opt:disabled{cursor:default}
+@media (prefers-reduced-motion:no-preference){ .opt.wrong{animation:shake .35s} }
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{margin-top:12px; border-radius:14px; padding:10px 12px; min-height:4.6rem; background:var(--info-bg); border:2px solid var(--line)}
+.fb.good{background:var(--good-bg); border-color:var(--good)}
+.fb.bad{background:var(--bad-bg); border-color:var(--bad)}
+.fb.good,.fb.bad{color:#1d2b20}
+:root[data-theme="dark"] .fb.good,:root[data-theme="dark"] .fb.bad{color:#f2f7e8}
+.fb strong{display:block; font-size:1.08rem}
+.fb span{display:block; color:var(--muted); font-size:.98rem}
+.fb.bad span,.fb.good span{color:inherit; opacity:.85}
+
+/* ---------- overlays ---------- */
+.overlay{
+  position:fixed; inset:0; z-index:20; display:flex; align-items:flex-start; justify-content:center; overflow:auto;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px);
+  background:rgba(12,32,20,.78);
+}
+.overlay[hidden]{display:none}
+.sheet{width:100%; max-width:660px; margin:auto; padding:18px 18px 20px}
+.sheet h1,.sheet h2{font-family:'Mali','Sarabun',sans-serif; margin:0 0 4px; line-height:1.25}
+.sheet h1{font-size:2rem}
+.sheet h2{font-size:1.6rem}
+.sheet p{margin:6px 0}
+.howto{list-style:none; padding:0; margin:12px 0}
+.howto li{display:flex; gap:10px; align-items:flex-start; padding:4px 0}
+.howto .emoji{font-size:1.4rem; line-height:1.4}
+details{border:2px solid var(--line); border-radius:14px; padding:8px 12px; margin:10px 0; background:var(--info-bg)}
+summary{cursor:pointer; font-weight:700}
+summary:focus-visible{outline:3px solid var(--sun); outline-offset:3px}
+dl{margin:8px 0 2px}
+dt{font-weight:700; margin-top:8px}
+dd{margin:0; color:var(--muted)}
+.btn{
+  display:block; width:100%; margin-top:14px; padding:12px 16px; font-size:1.25rem; font-weight:700; cursor:pointer;
+  background:linear-gradient(180deg,#5fd37b,#2a9446); color:#fff; border:3px solid var(--line); border-radius:18px;
+  box-shadow:0 6px 0 var(--shadow), inset 0 2px 0 rgba(255,255,255,.45); text-shadow:0 1px 0 rgba(0,0,0,.3);
+}
+.btn:active{transform:translateY(6px); box-shadow:0 0 0 var(--shadow)}
+.btn:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
+.score-big{text-align:center; margin:8px 0}
+.score-big b{display:block; font-family:'Mali','Sarabun',sans-serif; font-size:3.4rem; line-height:1.1; color:var(--leaf-d)}
+:root[data-theme="dark"] .score-big b{color:#8fe0a8}
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:10px 0}
+.stat{background:linear-gradient(180deg,#fff8d0,var(--chip)); color:#2c3a1d; border-radius:12px; padding:6px 4px; text-align:center; line-height:1.2; box-shadow:0 3px 0 rgba(0,0,0,.18)}
+:root[data-theme="dark"] .stat{color:#f2f7e8; background:var(--chip)}
+.stat span{display:block; font-size:.78rem; opacity:.8}
+.stat b{font-size:1.4rem}
+.stars{text-align:center; font-size:2.6rem; letter-spacing:6px; color:rgba(127,127,127,.45); line-height:1.2}
+.stars .on{color:#ffb800; text-shadow:0 2px 0 #9a6a00}
+.crops{display:flex; flex-wrap:wrap; gap:6px 12px; justify-content:center; margin:8px 0; font-size:1.1rem}
+.crops .emoji{font-size:1.5rem}
+.cheer{text-align:center; font-weight:700; margin:8px 0 4px}
+.muted{color:var(--muted); font-size:.92rem; text-align:center}
+.tabs{display:flex; gap:8px; margin:12px 0 4px}
+.tab{flex:1; padding:6px 8px; font-weight:700; border:2px solid var(--line); border-radius:12px; background:var(--card); color:var(--card-ink); cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--leaf); color:#fff}
+.tab:focus-visible{outline:3px solid var(--sun); outline-offset:2px}
+.rv{border:2px solid var(--line); border-left-width:8px; border-radius:14px; padding:8px 12px; margin:8px 0}
+.rv.ok{border-left-color:var(--good)} .rv.retry{border-left-color:var(--sun)} .rv.pending{border-left-color:var(--muted)}
+.rv .st{font-size:.85rem; color:var(--muted); font-weight:600}
+.rv .q{font-weight:700}
+.rv .a b{color:var(--good)}
+:root[data-theme="dark"] .rv .a b{color:#6ee79a}
+.rv .e{color:var(--muted); font-size:.98rem}
+@media (max-width:420px){ .chip b{font-size:1.1rem} .chip span{font-size:.66rem} .timer{font-size:1.8rem} }
+.app[hidden],.host[hidden]{display:none}
+.field-row{display:grid;gap:6px;margin:10px 0}
+.field-row label{font-weight:700}
+.inp{width:100%;padding:10px 12px;font-size:1.15rem;font-family:inherit;border:3px solid var(--line);border-radius:14px;background:var(--card);color:var(--card-ink)}
+.inp:focus-visible{outline:4px solid var(--sun);outline-offset:2px}
+.msg{min-height:1.5em;font-weight:600;margin:6px 0}
+.msg.err{color:var(--bad)} .msg.info{color:var(--muted)}
+.btn.alt{background:linear-gradient(180deg,#ffffff,#e9f3e0);color:#1d3b2a;text-shadow:none}
+.btn.small{font-size:1.02rem;padding:8px 12px;margin-top:8px}
+.btn:disabled{opacity:.55;cursor:default}
+.divider{text-align:center;color:var(--muted);margin:12px 0 0;font-size:.92rem}
+.hostlink{display:block;margin:12px auto 0;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.92rem;font-family:inherit}
+.fmt{background:var(--leaf);color:#fff;border-radius:999px;padding:0 12px;font-weight:700;font-size:.9rem}
+.htag{font-size:.9rem;color:var(--muted);margin:0 0 6px}
+.tfwrap{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tfbtn{min-height:72px;font-size:1.4rem;font-weight:700;font-family:inherit;cursor:pointer;color:#1d3b2a;background:linear-gradient(180deg,#ffffff,#e9f3e0);border:3px solid var(--line);border-radius:18px;box-shadow:0 5px 0 var(--shadow),inset 0 2px 0 rgba(255,255,255,.9)}
+:root[data-theme="dark"] .tfbtn{background:linear-gradient(180deg,#2c523b,#234733);color:#eef9ec}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tfbtn{background:linear-gradient(180deg,#2c523b,#234733);color:#eef9ec} }
+.tfbtn:active:not(:disabled){transform:translateY(5px);box-shadow:0 0 0 var(--shadow)}
+.tfbtn:focus-visible,.wchip:focus-visible,.cat:focus-visible{outline:4px solid var(--sun);outline-offset:2px}
+.tfbtn.right{background:linear-gradient(180deg,#e6fbec,var(--good-bg));border-color:var(--good);color:#0f4d27}
+.tfbtn.wrong{background:linear-gradient(180deg,#ffeceb,var(--bad-bg));border-color:var(--bad);color:#6b1511;opacity:.8}
+.words{display:flex;flex-wrap:wrap;gap:9px}
+.wchip{padding:8px 14px;min-height:46px;font-size:1.12rem;font-weight:600;font-family:inherit;cursor:pointer;color:#1d3b2a;background:linear-gradient(180deg,#ffffff,#e9f3e0);border:3px solid var(--line);border-radius:14px;box-shadow:0 4px 0 var(--shadow),inset 0 2px 0 rgba(255,255,255,.9)}
+:root[data-theme="dark"] .wchip{background:linear-gradient(180deg,#2c523b,#234733);color:#eef9ec}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .wchip{background:linear-gradient(180deg,#2c523b,#234733);color:#eef9ec} }
+.wchip.sel,.wchip[aria-pressed="true"]{background:linear-gradient(180deg,#ffe07a,#ffc02e);color:#3b2a00;border-color:#3b2a00}
+.wchip.right{background:linear-gradient(180deg,#e6fbec,var(--good-bg));border-color:var(--good);color:#0f4d27}
+.wchip.wrong{background:linear-gradient(180deg,#ffeceb,var(--bad-bg));border-color:var(--bad);color:#6b1511;opacity:.8}
+.wchip:disabled{cursor:default}
+@media (prefers-reduced-motion:no-preference){ .wchip.wrong,.tfbtn.wrong{animation:shake .35s} }
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.match .col{display:grid;gap:9px;align-content:start}
+.match .wchip{width:100%;text-align:center}
+.cats{display:grid;gap:9px;margin-top:12px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.cat{border:3px dashed var(--line);border-radius:14px;padding:6px 8px;background:var(--info-bg);cursor:pointer;text-align:left;font-family:inherit;font-size:1rem;color:var(--card-ink);min-height:70px}
+.cat b{display:block}
+.cat .placed{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;min-height:1.6em}
+.cat .pl{background:var(--good-bg);border:2px solid var(--good);border-radius:10px;padding:0 8px;font-weight:600;color:#0f4d27}
+.typewrap{display:flex;gap:8px;margin-top:6px}
+.typewrap .inp{flex:1;min-width:0}
+.typewrap .btn{width:auto;margin:0;padding:8px 18px;font-size:1.1rem}
+#ans>.btn{margin-top:12px}
+.aid{color:var(--muted);font-size:.95rem;margin-top:8px}
+.host{max-width:1200px;margin:0 auto;padding:12px;display:grid;gap:12px}
+.host-top{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.host-grid{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){ .host-grid{grid-template-columns:340px minmax(0,1fr);align-items:start} }
+.host-side{padding:14px}
+.roomcode{text-align:center;color:var(--muted)}
+.roomcode b{display:block;font-family:'Mali','Sarabun',sans-serif;font-size:3rem;line-height:1.2;letter-spacing:.15em;color:var(--leaf-d)}
+:root[data-theme="dark"] .roomcode b{color:#8fe0a8}
+.qr{background:#fff;border-radius:14px;padding:8px;margin:8px auto;max-width:220px}
+.qr[hidden]{display:none}
+.qr img{display:block;width:100%;height:auto;image-rendering:pixelated}
+.linkrow{display:flex;gap:6px;margin:8px 0}
+.linkrow .inp{font-size:.85rem;padding:6px 8px}
+.linkrow .btn{width:auto;margin:0;padding:4px 12px;font-size:.95rem;white-space:nowrap}
+.host-side label{display:block;margin:8px 0 2px;font-weight:700}
+.host-board{padding:14px}
+.board{max-height:74vh;overflow:auto}
+.brow{display:grid;grid-template-columns:2.4rem minmax(0,1.3fr) minmax(0,2fr) 3.8rem;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px solid rgba(127,127,127,.25)}
+.brow .rk{font-weight:700;text-align:center;font-size:1.25rem}
+.brow .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow .nm small{display:block;color:var(--muted);font-weight:400;font-size:.78rem}
+.brow .meter{height:16px;border-radius:99px;background:rgba(127,127,127,.25);overflow:hidden;border:2px solid var(--line)}
+.brow .meter i{display:block;height:100%;background:linear-gradient(180deg,#7be08f,#2f9e4f);transition:width .4s}
+.brow .sc{font-size:1.4rem;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.brow.off{opacity:.5}
+.brow.top1 .nm{font-size:1.15rem}
+.brow.you{background:var(--chip);border-radius:10px;color:#2c3a1d}
+:root[data-theme="dark"] .brow.you{color:#f2f7e8}
+@media (max-width:520px){ .brow{grid-template-columns:2rem minmax(0,1.5fr) minmax(0,1fr) 3rem} }
+.pchips{display:flex;flex-wrap:wrap;gap:8px}
+.pchip{background:var(--chip);color:#2c3a1d;border-radius:999px;padding:2px 14px;font-weight:600}
+:root[data-theme="dark"] .pchip{color:#f2f7e8}
+.pchip.off{opacity:.5}
+.netbanner{position:fixed;top:0;left:0;right:0;z-index:40;background:var(--bad);color:#fff;text-align:center;padding:calc(env(safe-area-inset-top,0px) + 6px) 6px 6px;font-weight:700}
+.netbanner[hidden]{display:none}
+.app{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"hud" "scene"!important}
+.scene{min-height:clamp(340px,64vh,760px)!important;touch-action:none}
+.stage canvas{touch-action:none}
+.tip{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);z-index:3;background:rgba(255,255,255,.92);color:#1d3b2a;border:2px solid #1d3b2a;border-radius:14px;padding:4px 12px;font-weight:600;font-size:.95rem;text-align:center;max-width:86%;box-shadow:0 3px 0 #173020}
+.tip[hidden]{display:none}
+.dpad{position:absolute;left:10px;bottom:10px;z-index:3;display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:4px;user-select:none;-webkit-user-select:none}
+.dpad button{width:52px;height:52px;border-radius:14px;border:3px solid #1d3b2a;background:linear-gradient(180deg,#ffffff,#dfeccf);color:#1d3b2a;font-size:1.4rem;font-weight:700;cursor:pointer;box-shadow:0 4px 0 #173020;touch-action:none;-webkit-tap-highlight-color:transparent}
+.dpad button:active{transform:translateY(3px);box-shadow:0 1px 0 #173020}
+.dpad .up{grid-column:2;grid-row:1}.dpad .lf{grid-column:1;grid-row:2}.dpad .rt{grid-column:3;grid-row:2}.dpad .dn{grid-column:2;grid-row:3}
+.actwrap{position:absolute;right:10px;bottom:10px;z-index:3;display:grid;gap:6px;justify-items:end;max-width:56%}
+.actinfo{background:rgba(255,255,255,.92);color:#1d3b2a;border:2px solid #1d3b2a;border-radius:12px;padding:2px 10px;font-weight:700;font-size:.92rem;text-align:right}
+.actbtn{width:auto!important;margin:0!important;padding:12px 18px!important;font-size:1.15rem!important;min-width:170px}
+.actbtn[hidden]{display:none}
+.qsheet{max-width:640px}
+.seeds{display:grid;gap:8px;margin:10px 0}
+.seed{display:flex;align-items:center;gap:10px;padding:8px 12px;font-family:inherit;font-size:1.05rem;text-align:left;color:#1d3b2a;cursor:pointer;background:linear-gradient(180deg,#ffffff,#e9f3e0);border:3px solid var(--line);border-radius:16px;box-shadow:0 5px 0 var(--shadow)}
+:root[data-theme="dark"] .seed{background:linear-gradient(180deg,#2c523b,#234733);color:#eef9ec}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .seed{background:linear-gradient(180deg,#2c523b,#234733);color:#eef9ec} }
+.seed:active{transform:translateY(5px);box-shadow:0 0 0 var(--shadow)}
+.seed:focus-visible{outline:4px solid var(--sun);outline-offset:2px}
+.seed .sico{font-size:2rem;line-height:1}
+.seed b{display:block}
+.seed small{display:block;color:var(--muted)}
+.seed .stars{margin-left:auto;font-weight:700;color:#d98a00;white-space:nowrap}
+.avprev{display:grid;place-items:center;margin:6px 0}
+.avprev svg{width:140px;height:auto;background:linear-gradient(180deg,#cdeeff,#9be07f);border:3px solid var(--line);border-radius:18px}
+.drow{margin:8px 0}
+.dlab{font-weight:700;margin-bottom:4px}
+.dlist{display:flex;flex-wrap:wrap;gap:8px}
+.dsw{width:38px;height:38px;border-radius:50%;border:3px solid var(--line);cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.dsw[aria-pressed="true"]{outline:4px solid var(--sun);outline-offset:2px}
+.dchip{padding:6px 12px;border:3px solid var(--line);border-radius:12px;background:var(--card);color:var(--card-ink);font-family:inherit;font-weight:600;cursor:pointer}
+.dchip[aria-pressed="true"]{background:var(--leaf);color:#fff}
+.dsw:focus-visible,.dchip:focus-visible{outline:4px solid var(--sun);outline-offset:2px}
+@media (max-width:420px){.dpad{grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px)}.dpad button{width:46px;height:46px}.actbtn{min-width:140px;font-size:1rem!important}}
+</style>
+</head>
+<body>
+<div class="netbanner" id="netBanner" hidden role="status">การเชื่อมต่อหลุด กำลังเชื่อมต่อใหม่…</div>
+
+<main class="app" id="app" hidden aria-label="เกมฟาร์มคำนามสุดสนุก">
+  <section class="card hud" aria-label="เวลาและคะแนน">
+    <div class="hud-top">
+      <div class="brand"><span class="emoji">🌾</span> <span id="pName">ฟาร์มคำนาม 3D</span><small>ตอบถูก +1 ถึง +5 ตามระดับพืช · ตอบผิด −2</small></div>
+      <div class="timer" id="timer" role="timer" aria-label="เวลาที่เหลือ"><span class="emoji">⏱</span><span id="tt">10:00</span></div>
+    </div>
+    <div class="bar" id="bar" aria-hidden="true"><i id="barfill"></i></div>
+    <div class="chips">
+      <div class="chip"><span>ด่าน</span><b id="cLevel">1</b></div>
+      <div class="chip" id="chipScore"><span>คะแนน</span><b id="cScore">0</b></div>
+      <div class="chip"><span>ผลผลิต</span><b id="cHarv">0</b></div>
+      <div class="chip"><span>ตอบถูก</span><b id="cRight">0</b></div>
+      <div class="chip"><span>ตอบผิด</span><b id="cWrong">0</b></div>
+    </div>
+  </section>
+
+  <section class="card scene" id="scene" aria-label="ฟาร์ม 3 มิติ">
+    <div class="stage" id="stage"></div>
+    <div class="lvl-ribbon" id="ribbon">ด่าน 1</div>
+    <div class="basket-chip" aria-label="จำนวนผลผลิตที่เก็บได้"><span class="ico emoji">🧺</span><span id="basketN">0</span></div>
+    <div class="tip" id="tip">แตะที่แปลงดินเพื่อเดินไปปลูก · หรือใช้ปุ่มลูกศร / WASD</div>
+    <div class="dpad" aria-label="ปุ่มเดิน">
+      <button class="up" id="dUp" type="button" aria-label="เดินขึ้น">▲</button>
+      <button class="lf" id="dLeft" type="button" aria-label="เดินซ้าย">◀</button>
+      <button class="rt" id="dRight" type="button" aria-label="เดินขวา">▶</button>
+      <button class="dn" id="dDown" type="button" aria-label="เดินลง">▼</button>
+    </div>
+    <div class="actwrap">
+      <div class="actinfo" id="actInfo">เดินไปที่แปลงดิน</div>
+      <button class="btn actbtn" id="actBtn" type="button" hidden>🌱 ปลูกพืช</button>
+    </div>
+  </section>
+</main>
+
+<!-- ห้องควบคุมของครู -->
+<section class="host" id="hostView" hidden aria-label="ห้องควบคุมของครู">
+  <div class="card host-top">
+    <div>
+      <div class="brand"><span class="emoji">🌾</span> ฟาร์มคำนาม 3D — ห้องควบคุมของครู</div>
+      <div id="hState" aria-live="polite">กำลังสร้างห้อง…</div>
+    </div>
+    <div class="timer" aria-label="เวลาที่เหลือ"><span class="emoji">⏱</span><span id="hTimer">10:00</span></div>
+  </div>
+  <div class="host-grid">
+    <div class="card host-side">
+      <div class="roomcode">รหัสห้อง<b id="hCode">-----</b></div>
+      <div class="qr" id="hQr" hidden></div>
+      <div class="linkrow"><input class="inp" id="hLink" readonly aria-label="ลิงก์เข้าห้อง"><button class="btn alt" id="hCopy" type="button">คัดลอก</button></div>
+      <label for="hDur">เวลาเล่น</label>
+      <select class="inp" id="hDur">
+        <option value="5">5 นาที</option><option value="10" selected>10 นาที</option>
+        <option value="15">15 นาที</option><option value="20">20 นาที</option><option value="30">30 นาที</option>
+      </select>
+      <p style="margin:10px 0 0">ผู้เล่นทั้งหมด <b id="hCount">0</b> คน (ออนไลน์ <b id="hOnline">0</b>)</p>
+      <button class="btn" id="hStart" type="button">▶ เริ่มเกม</button>
+      <button class="btn alt" id="hStop" type="button" hidden>⏹ จบเกมทันที</button>
+      <button class="btn alt" id="hNew" type="button" hidden>🔄 เริ่มรอบใหม่ (ผู้เล่นคนเดิม)</button>
+      <button class="btn alt" id="hCsv" type="button" hidden>⬇ ดาวน์โหลดผล (CSV)</button>
+    </div>
+    <div class="card host-board">
+      <h2 id="hBoardTitle" style="font-family:'Mali','Sarabun',sans-serif;margin:0 0 8px">ผู้เล่นที่เข้าร่วม</h2>
+      <div class="board" id="hBoard"></div>
+    </div>
+  </div>
+</section>
+
+<!-- หน้าแรก -->
+<div class="overlay" id="homeOv">
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="homeTitle">
+    <h1 id="homeTitle"><span class="emoji">🌾</span> ฟาร์มคำนามสุดสนุก 3D</h1>
+    <p>เกมทบทวนคำนาม 5 ประเภท เล่นพร้อมเพื่อนในห้อง ครูเป็นคนกดเริ่มเกม</p>
+    <div class="field-row">
+      <label for="jName">ตั้งชื่อของคุณ</label>
+      <input class="inp" id="jName" maxlength="20" autocomplete="off" placeholder="เช่น น้องมะลิ">
+      <label for="jCode">รหัสห้อง (ถามจากครู)</label>
+      <input class="inp" id="jCode" maxlength="6" inputmode="numeric" autocomplete="off" placeholder="เช่น 48213">
+    </div>
+    <div class="msg" id="homeMsg" aria-live="polite"></div>
+    <button class="btn" id="joinBtn" type="button">เข้าร่วมเกม</button>
+    <div class="divider">หรือ</div>
+    <button class="btn alt small" id="soloBtn" type="button">ฝึกเล่นคนเดียว (ไม่ต้องใช้ห้อง)</button>
+    <button class="btn alt small" id="dressBtn" type="button">👕 แต่งตัวตัวละคร</button>
+    <details>
+      <summary>วิธีเล่น และสรุปคำนาม 5 ประเภท</summary>
+      <p>เดินตัวละครไปที่แปลงดิน → ปลูกพืช (เลือกระดับ ⭐1–5) → รดน้ำ → ใส่ปุ๋ย (ฟรี) → รอโต 3 วินาที → เก็บเกี่ยวโดยตอบคำถาม · ตอบถูกได้คะแนนเท่าจำนวนดาวของพืช (+1 ถึง +5) · ตอบผิด <b>−2 คะแนน</b> (ไม่ต่ำกว่า 0) มีคำใบ้ให้ลองใหม่ · ด่านละ 10 ชิ้น ยากขึ้นเรื่อยๆ ไม่จำกัดด่าน · ใช้ปุ่มลูกศร/WASD หรือแตะที่ฟาร์มเพื่อเดิน</p>
+      <dl>
+        <dt>สามานยนาม</dt><dd>ชื่อเรียกทั่วไป เช่น ครู แมว โต๊ะ แม่น้ำ</dd>
+        <dt>วิสามานยนาม</dt><dd>ชื่อเฉพาะ เช่น สมชาย เชียงใหม่ แม่น้ำโขง</dd>
+        <dt>สมุหนาม</dt><dd>ชื่อกลุ่มหรือหมู่ เช่น ฝูง โขลง คณะ</dd>
+        <dt>ลักษณนาม</dt><dd>คำที่ตามหลังจำนวนนับเพื่อบอกลักษณะ เช่น ตัว คัน หลัง</dd>
+        <dt>อาการนาม</dt><dd>“การ” หรือ “ความ” + กริยา/วิเศษณ์ เช่น การอ่าน ความสุข</dd>
+      </dl>
+    </details>
+    <div id="teacherBox" hidden><button class="btn alt small" id="hostBtn" type="button">👩‍🏫 ครู: สร้างห้องควบคุมเกม</button></div>
+    <button class="hostlink" id="teacherLink" type="button">สำหรับครู</button>
+  </div>
+</div>
+
+<!-- ห้องรอ -->
+<div class="overlay" id="waitOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="waitTitle">
+    <h2 id="waitTitle" style="text-align:center">ห้อง <span id="wCode"></span></h2>
+    <p style="text-align:center">ชื่อของคุณ: <b id="wName"></b></p>
+    <p class="cheer" id="wStatus"><span class="emoji">⏳</span> รอครูกดเริ่มเกม…</p>
+    <p class="muted" id="wCount"></p>
+    <button class="btn alt small" id="dressBtn2" type="button">👕 แต่งตัวตัวละคร</button>
+    <div class="field-row">
+      <label for="wRename">เปลี่ยนชื่อ</label>
+      <div class="typewrap"><input class="inp" id="wRename" maxlength="20" autocomplete="off"><button class="btn alt small" id="wRenameBtn" type="button" style="margin:0">บันทึก</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- คำถามตอนเก็บเกี่ยว -->
+<div class="overlay" id="qOv" hidden>
+  <div class="card sheet qsheet" role="dialog" aria-modal="true" aria-labelledby="qtext">
+    <div class="qhead"><span class="qno" id="qno">พืช</span><span class="fmt" id="fmt">รูปแบบ</span><span class="lvbadge" id="lvbadge">ด่าน 1</span></div>
+    <div class="htag" id="harvestTag"></div>
+    <div class="pips" id="pips" aria-hidden="true"></div>
+    <div class="qtext" id="qtext"></div>
+    <div id="ans"></div>
+    <div class="fb" id="fb" aria-live="polite"><strong>พร้อมแล้ว</strong></div>
+    <button class="btn alt small" id="qCancel" type="button">ไว้ก่อน (กลับไปที่ฟาร์ม)</button>
+  </div>
+</div>
+
+<!-- เลือกเมล็ดพันธุ์ -->
+<div class="overlay" id="seedOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="seedTitle">
+    <h2 id="seedTitle">🌱 เลือกเมล็ดพันธุ์</h2>
+    <p class="muted" style="text-align:left">ยิ่งดาวมาก ยิ่งได้คะแนนมาก แต่คำถามตอนเก็บเกี่ยวจะยากขึ้น</p>
+    <div class="seeds" id="seedList"></div>
+    <button class="btn alt small" id="seedCancel" type="button">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- แต่งตัวตัวละคร -->
+<div class="overlay" id="dressOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="dressTitle">
+    <h2 id="dressTitle" style="text-align:center">👕 แต่งตัวตัวละคร</h2>
+    <div class="avprev" id="avPrev"></div>
+    <div id="dressOpts"></div>
+    <button class="btn alt small" id="dressRand" type="button">🎲 สุ่มชุด</button>
+    <button class="btn" id="dressDone" type="button">เสร็จแล้ว</button>
+  </div>
+</div>
+
+<!-- ผ่านด่าน -->
+<div class="overlay" id="lvOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="lvTitle">
+    <h2 id="lvTitle" style="text-align:center">ผ่านด่านแล้ว!</h2>
+    <div class="stars" id="lvStars"></div>
+    <div class="stats">
+      <div class="stat"><span>ถูกตั้งแต่ครั้งแรก</span><b id="lvFirst">0/10</b></div>
+      <div class="stat"><span>ตอบผิดในด่านนี้</span><b id="lvMiss">0</b></div>
+      <div class="stat"><span>คะแนนที่ถูกหัก</span><b id="lvLost">0</b></div>
+    </div>
+    <div class="score-big"><span>คะแนนรวมตอนนี้</span><b id="lvScore">0</b></div>
+    <p class="cheer" id="lvMsg"></p>
+    <p class="muted" id="lvNext"></p>
+    <button class="btn" id="lvBtn" type="button">ไปด่านต่อไป ▶</button>
+    <p class="muted" id="lvAuto"></p>
+  </div>
+</div>
+
+<!-- สรุปผล -->
+<div class="overlay" id="endOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+    <h2 id="endTitle"><span class="emoji">🎉</span> หมดเวลาแล้ว!</h2>
+    <div class="score-big"><span>คะแนนของคุณ</span><b id="sScore">0</b></div>
+    <div class="stats">
+      <div class="stat"><span>ผลผลิต</span><b id="sHarv">0</b></div>
+      <div class="stat"><span>ตอบถูก</span><b id="sRight">0</b></div>
+      <div class="stat"><span>ตอบผิด</span><b id="sWrong">0</b></div>
+      <div class="stat"><span>แม่นยำ</span><b id="sAcc">0%</b></div>
+      <div class="stat"><span>ผ่านแล้ว (ด่าน)</span><b id="sLv">0</b></div>
+      <div class="stat"><span>คะแนนที่ถูกหัก</span><b id="sLost">0</b></div>
+    </div>
+    <div class="crops" id="sCrops"></div>
+    <p class="cheer" id="sCheer"></p>
+    <div id="rankBox" hidden>
+      <h2 style="font-size:1.3rem;margin-top:14px"><span class="emoji">🏆</span> อันดับของทุกคน</h2>
+      <p class="muted" id="rankWait">กำลังรอครูสรุปอันดับ…</p>
+      <div class="board" id="finalBoard"></div>
+    </div>
+    <h2 style="font-size:1.3rem;margin-top:14px">เฉลยคำตอบ</h2>
+    <div class="tabs">
+      <button class="tab" id="tabAll" type="button" aria-pressed="true">ทุกข้อ</button>
+      <button class="tab" id="tabMiss" type="button" aria-pressed="false">ข้อที่ควรทบทวน</button>
+    </div>
+    <div id="review"></div>
+    <button class="btn" id="againBtn" type="button">เล่นอีกครั้ง</button>
+    <p class="muted" id="endNote" hidden>รอครูเริ่มรอบใหม่ หน้านี้จะเปลี่ยนให้อัตโนมัติ</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* =====================================================================
+   ข้อมูลพื้นฐาน
+   ===================================================================== */
+var T=['สามานยนาม','วิสามานยนาม','สมุหนาม','ลักษณนาม','อาการนาม'];
+var TH=[
+  'นึกถึงชื่อเรียกทั่วไป ที่ไม่ได้บอกว่าเป็นของใครหรือที่ไหนโดยเฉพาะ',
+  'นึกถึงชื่อเฉพาะที่ใช้เรียกคน สัตว์ สถานที่ หรือสิ่งใดสิ่งหนึ่งโดยเฉพาะ',
+  'นึกถึงคำที่ใช้เรียกสิ่งหลายๆ อย่างที่อยู่รวมกันเป็นกลุ่ม',
+  'ดูว่าคำนี้ตามหลังตัวเลขเพื่อบอกลักษณะของสิ่งที่นับหรือไม่',
+  'ดูว่าขึ้นต้นด้วย “การ” หรือ “ความ” แล้วตามด้วยกริยาหรือคุณลักษณะหรือไม่'
+];
+var RS=[
+  'เป็นชื่อเรียกทั่วไป ไม่เจาะจงว่าเป็นของใครหรือที่ไหน',
+  'เป็นชื่อเฉพาะที่เจาะจงว่าเป็นใครหรือที่ไหน',
+  'ใช้เรียกสิ่งที่อยู่รวมกันเป็นกลุ่ม',
+  'ตามหลังจำนวนนับเพื่อบอกลักษณะของนามนั้น',
+  'เกิดจาก “การ” หรือ “ความ” นำหน้ากริยาหรือวิเศษณ์'
+];
+
+var W0=['ครู','แมว','โต๊ะ','แม่น้ำ','โรงเรียน','หนังสือ','ภูเขา','ตลาด','นักเรียน','ต้นไม้','ทะเล','ถนน','เด็ก','ช้าง','ปลา','สมุด'];
+var W1=['สมชาย','สมศรี','เชียงใหม่','ภูเก็ต','แม่น้ำเจ้าพระยา','แม่น้ำโขง','ประเทศไทย','ดอยอินทนนท์','ทะเลอันดามัน','กรุงเทพมหานคร','ขอนแก่น'];
+var W2=[{w:'ฝูง',c:'ฝูงนก'},{w:'ฝูง',c:'ฝูงปลา'},{w:'ฝูง',c:'ฝูงวัว'},{w:'โขลง',c:'โขลงช้าง'},{w:'คณะ',c:'คณะครู'},{w:'คณะ',c:'คณะนักเรียน'},{w:'พวก',c:'พวกเด็ก'}];
+var W3=[{w:'ตัว',c:'แมว 3 ตัว'},{w:'คัน',c:'รถ 2 คัน'},{w:'หลัง',c:'บ้าน 1 หลัง'},{w:'ด้าม',c:'ปากกา 2 ด้าม'},{w:'เล่ม',c:'หนังสือ 4 เล่ม'},{w:'ใบ',c:'จาน 3 ใบ'},{w:'ต้น',c:'ต้นไม้ 4 ต้น'},{w:'ฟอง',c:'ไข่ไก่ 6 ฟอง'},{w:'คู่',c:'รองเท้า 1 คู่'},{w:'หวี',c:'กล้วย 5 หวี'},{w:'เชือก',c:'ช้าง 3 เชือก'}];
+var W4=['ความสุข','ความรัก','ความดี','ความกล้าหาญ','ความขยัน','ความซื่อสัตย์','ความสะอาด','การอ่าน','การเดินทาง','การเรียน','การกิน','การวิ่ง','การออกกำลังกาย'];
+/* คำที่ใช้เป็นตัวเลือกตอบ (ใช้เฉพาะคำที่ชนิดชัดเจน) */
+var PW=[W0,W1,['ฝูง','โขลง','คณะ','พวก'],['ตัว','คัน','หลัง','ด้าม','เล่ม','ฟอง','คู่','เชือก','หวี'],W4];
+var VERBS=['อ่าน','เรียน','กิน','วิ่ง','ดี','สะอาด','รัก','เดินทาง','ขยัน'];
+var TR1={'แม่น้ำโขง':'แม่น้ำ','เชียงใหม่':'จังหวัด','สมชาย':'เด็กชาย','ประเทศไทย':'ประเทศ','ภูเก็ต':'จังหวัด','สมศรี':'ผู้หญิง','ดอยอินทนนท์':'ภูเขา','ทะเลอันดามัน':'ทะเล','กรุงเทพมหานคร':'เมือง','แม่น้ำเจ้าพระยา':'แม่น้ำ','ขอนแก่น':'จังหวัด'};
+
+/* คำนามที่ใช้ลักษณนาม: [คำนาม, จำนวน, ลักษณนาม, ลักษณนามที่ห้ามใช้เป็นตัวหลอก, ระดับ(1ง่าย 2กลาง)] */
+var FILL=[
+  ['รถยนต์',2,'คัน',['ตัว'],1],['บ้าน',3,'หลัง',[],1],['หนังสือ',4,'เล่ม',[],1],['แมว',2,'ตัว',[],1],['ปากกา',2,'ด้าม',[],1],
+  ['ไข่ไก่',6,'ฟอง',['ลูก','ใบ'],2],['รองเท้า',1,'คู่',['ตัว'],2],['มะม่วง',3,'ลูก',['ต้น','ผล'],2],['ต้นไม้',4,'ต้น',[],2],
+  ['จาน',3,'ใบ',[],2],['นักเรียน',30,'คน',[],2],['ร่ม',1,'คัน',[],2],['กล้วย',5,'หวี',['ใบ','ต้น','ลูก'],2]
+];
+var UCL=['ตัว','คัน','หลัง','ด้าม','เล่ม','ใบ','ต้น','ลูก','คน','ฟอง','คู่','เชือก','หวี'];
+
+var CROPS=[
+  {k:'mango',e:'🥭',n:'มะม่วง'},{k:'pineapple',e:'🍍',n:'สับปะรด'},{k:'corn',e:'🌽',n:'ข้าวโพด'},
+  {k:'watermelon',e:'🍉',n:'แตงโม'},{k:'tomato',e:'🍅',n:'มะเขือเทศ'},{k:'carrot',e:'🥕',n:'แครอท'}
+];
+var LETTERS=['ก','ข','ค','ง'];
+var GOOD=['เก่งมาก! ได้ผลผลิตเพิ่มแล้ว','ถูกต้อง! ฟาร์มของเรากำลังเติบโต','สุดยอด! เก็บเกี่ยวได้อีก 1 ชิ้น','ใช่เลย! เก็บเกี่ยวต่อกันเลย','เยี่ยมไปเลย! ตะกร้าหนักขึ้นอีกนิด'];
+var BAD=['ลองอีกครั้งนะ มาเรียนรู้ไปด้วยกัน','ยังไม่ใช่ ไม่เป็นไร ลองอีกครั้ง!','เกือบแล้ว! อ่านคำใบ้แล้วลองอีกที'];
+var N_PLOTS=6, GAME_SECONDS=600, PER_LEVEL=10, PENALTY=2;
+var DIFF=['','ง่ายมาก','ง่าย','ปานกลาง','ค่อนข้างยาก','ยาก','ยากมาก'];
+var LVICON=['','🌱','🌿','🌼','🍅','🧺','👑'];
+
+/* =====================================================================
+   ตัวช่วย
+   ===================================================================== */
+function $(id){return document.getElementById(id);}
+function rand(n){return Math.floor(Math.random()*n);}
+function pick(a){return a[rand(a.length)];}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rand(i+1);var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function guard(p,ms){return Promise.race([p,sleep(ms)]);}
+function reduced(){return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}
+function fmt(s){var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function cropByKey(k){for(var i=0;i<CROPS.length;i++){if(CROPS[i].k===k)return CROPS[i];}return CROPS[0];}
+
+/* =====================================================================
+   คลังคำถาม
+   ===================================================================== */
+function mk(q,a,d,hint,exp){return {type:'mc',q:q,a:a,d:d,hint:hint,exp:exp,k:q+'|'+a};}
+
+/* --- ตัวสร้างคำถามอัตโนมัติ (ได้ข้อใหม่ได้เรื่อยๆ) --- */
+function genClassify(types){
+  var t=pick(types), q, w, ctx='';
+  if(t===2||t===3){
+    var it=pick(t===2?W2:W3); w=it.w; ctx=it.c;
+    q='คำว่า “'+w+'” ในวลี “'+ctx+'” เป็นคำนามชนิดใด?';
+  }else{
+    w=pick(t===0?W0:t===1?W1:W4);
+    q='คำว่า “'+w+'” เป็นคำนามชนิดใด?';
+  }
+  var others=shuffle([0,1,2,3,4].filter(function(x){return x!==t;})).slice(0,3).map(function(i){return T[i];});
+  var lead=ctx?'“'+w+'” ในวลี “'+ctx+'”':'“'+w+'”';
+  return mk(q,T[t],others,TH[t],lead+' เป็น'+T[t]+' เพราะ'+RS[t]);
+}
+function trickyFor(t,a){
+  if(t===1) return TR1[a]||null;
+  if(t===0){for(var k in TR1){if(TR1[k]===a)return k;}return null;}
+  if(t===4){
+    if(a==='ความสุข') return pick(VERBS);
+    var d=a.replace(/^(การ|ความ)/,'');
+    return d&&d!==a?d:pick(VERBS);
+  }
+  return null;
+}
+function genPick(types,tricky){
+  var t=pick(types), a=pick(PW[t]);
+  var used={}; used[a]=1; var d=[], tr=null;
+  if(tricky){tr=trickyFor(t,a); if(tr&&!used[tr]){used[tr]=1; d.push(tr);} else tr=null;}
+  var others=shuffle([0,1,2,3,4].filter(function(x){return x!==t;})), i=0;
+  while(d.length<3&&i<40){
+    var w=pick(PW[others[i%4]]); i++;
+    if(!used[w]){used[w]=1; d.push(w);}
+  }
+  var exp='“'+a+'” เป็น'+T[t]+' เพราะ'+RS[t];
+  if(tr){
+    if(t===4) exp+=' ส่วน “'+tr+'” เป็นเพียงคำกริยาหรือวิเศษณ์ ยังไม่ใช่อาการนาม';
+    else if(t===1) exp+=' ส่วน “'+tr+'” เป็นชื่อทั่วไป (สามานยนาม)';
+    else if(t===0) exp+=' ส่วน “'+tr+'” เป็นชื่อเฉพาะ (วิสามานยนาม)';
+  }
+  return mk('ข้อใดเป็น'+T[t]+'?',a,d,TH[t],exp);
+}
+function genFill(maxLevel){
+  var pool=FILL.filter(function(f){return f[4]<=maxLevel;});
+  var f=pick(pool);
+  var bad=UCL.filter(function(c){return c!==f[2]&&f[3].indexOf(c)<0;});
+  var d=shuffle(bad).slice(0,3);
+  return mk('เติมลักษณนามให้ถูกต้อง: “'+f[0]+' '+f[1]+' ___”',f[2],d,
+    'นึกถึงคำที่เรามักพูดตามหลังตัวเลขเวลานับสิ่งนี้',
+    'ลักษณนามของ “'+f[0]+'” คือ “'+f[2]+'” เช่น '+f[0]+' '+f[1]+' '+f[2]);
+}
+
+/* --- ข้อที่เขียนเอง --- */
+var DEF=[
+  mk('ข้อใดอธิบาย “สามานยนาม” ได้ถูกต้อง?','คำนามที่ใช้เรียกชื่อทั่วไป ไม่เจาะจง',
+    ['คำนามที่เป็นชื่อเฉพาะของคน สัตว์ หรือสถานที่','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะ','คำนามที่ใช้เรียกสิ่งที่รวมกันเป็นกลุ่ม'],
+    'สามานยนาม มาจากคำว่า “สามัญ” ที่แปลว่าทั่วไป','สามานยนามคือชื่อเรียกทั่วไป ไม่เจาะจง เช่น ครู แมว โต๊ะ'),
+  mk('ข้อใดอธิบาย “วิสามานยนาม” ได้ถูกต้อง?','คำนามที่เป็นชื่อเฉพาะของคน สัตว์ สิ่งของ หรือสถานที่',
+    ['ชื่อเรียกทั่วไปของคนและสิ่งของ','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะ','คำนามที่เกิดจากคำ “การ” หรือ “ความ”'],
+    'วิสามานยนามบอกชื่อที่เจาะจงว่าเป็นอะไรหรือใครโดยเฉพาะ','วิสามานยนามคือชื่อเฉพาะ เช่น สมชาย เชียงใหม่ แม่น้ำโขง'),
+  mk('ข้อใดอธิบาย “สมุหนาม” ได้ถูกต้อง?','คำนามที่บอกว่าเป็นกลุ่มหรือหมู่',
+    ['ชื่อเฉพาะของคนและสถานที่','คำที่ตามหลังจำนวนนับเพื่อบอกลักษณะ','คำนามที่เกิดจากคำกริยา'],
+    'ลองนึกถึงคำว่า ฝูง โขลง คณะ','สมุหนามคือคำที่บอกว่าสิ่งนั้นอยู่รวมกันเป็นกลุ่ม เช่น ฝูง โขลง คณะ'),
+  mk('ข้อใดอธิบาย “ลักษณนาม” ได้ถูกต้อง?','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะของนาม',
+    ['ชื่อเรียกทั่วไปของคนและสิ่งของ','คำนามที่บอกว่าเป็นกลุ่มหรือหมู่','คำนามที่เป็นชื่อเฉพาะ'],
+    'ลองนึกถึง “แมว 2 ตัว” หรือ “รถ 3 คัน”','ลักษณนามคือคำที่ตามหลังจำนวนนับเพื่อบอกลักษณะ เช่น ตัว คัน หลัง'),
+  mk('ข้อใดอธิบาย “อาการนาม” ได้ถูกต้อง?','คำนามที่ใช้ “การ” หรือ “ความ” นำหน้ากริยาหรือวิเศษณ์',
+    ['คำนามที่ใช้เรียกสิ่งที่รวมกันเป็นกลุ่ม','ชื่อเฉพาะของคน สัตว์ หรือสถานที่','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะ'],
+    'ลองนึกถึงคำว่า การอ่าน และ ความสุข','อาการนามคือคำนามที่เกิดจาก “การ” หรือ “ความ” + กริยา/วิเศษณ์ เช่น การอ่าน ความสุข'),
+  mk('คำว่า “การ” และ “ความ” นำหน้าคำชนิดใดเพื่อสร้างอาการนาม?','คำกริยาหรือคำวิเศษณ์',
+    ['คำสันธาน','คำบุพบท','ชื่อเฉพาะของสถานที่'],
+    'ลองดู “การอ่าน” (อ่าน = ?) และ “ความดี” (ดี = ?)','“การ” มักนำหน้ากริยา เช่น การอ่าน ส่วน “ความ” มักนำหน้ากริยาหรือวิเศษณ์ เช่น ความสุข')
+];
+var PICKH=[
+  mk('ข้อใดเป็นวิสามานยนาม?','เชียงใหม่',['จังหวัด','ภูเขา','นักเรียน'],'มองหาคำที่เป็นชื่อเฉพาะของสถานที่','“เชียงใหม่” เป็นชื่อเฉพาะ ส่วน “จังหวัด” “ภูเขา” “นักเรียน” เป็นสามานยนาม'),
+  mk('ข้อใดเป็นวิสามานยนาม?','แม่น้ำโขง',['แม่น้ำ','คลอง','ทะเล'],'ดูว่าคำไหนบอกชื่อเฉพาะของแหล่งน้ำสายหนึ่ง','“แม่น้ำโขง” เป็นชื่อเฉพาะ ส่วน “แม่น้ำ” “คลอง” “ทะเล” เป็นสามานยนาม'),
+  mk('ข้อใดเป็นวิสามานยนาม?','สมชาย',['เด็กชาย','ผู้ชาย','พี่ชาย'],'ชื่อเฉพาะของคน จะเจาะจงว่าเป็นใครคนใดคนหนึ่ง','“สมชาย” เป็นชื่อเฉพาะของคน ส่วนที่เหลือเป็นสามานยนามที่ใช้เรียกทั่วไป'),
+  mk('ข้อใดเป็นสามานยนามทั้งหมด?','ครู โต๊ะ ปากกา',['ครู กรุงเทพ ปากกา','สมชาย โต๊ะ ปากกา','ครู โต๊ะ ฝูง'],
+    'หาข้อที่ไม่มีชื่อเฉพาะ และไม่มีคำบอกกลุ่ม','“ครู โต๊ะ ปากกา” เป็นสามานยนามทั้งหมด ส่วนข้ออื่นมี “กรุงเทพ” “สมชาย” (วิสามานยนาม) หรือ “ฝูง” (สมุหนาม) ปนอยู่'),
+  mk('ข้อใดเป็นสมุหนามทั้งหมด?','ฝูง โขลง คณะ',['ฝูง ตัว คณะ','ฝูง โขลง ความดี','ฝูง โขลง เชียงใหม่'],
+    'ตรวจทีละคำว่าทุกคำบอกกลุ่มหรือหมู่หรือไม่','“ฝูง โขลง คณะ” เป็นสมุหนามทั้งหมด ส่วนข้ออื่นมี “ตัว” (ลักษณนาม) “ความดี” (อาการนาม) หรือ “เชียงใหม่” (วิสามานยนาม) ปนอยู่'),
+  mk('ข้อใดเป็นอาการนาม?','การเรียน',['เรียน','โรงเรียน','นักเรียน'],'“เรียน” เป็นคำกริยา ลองหาคำที่มี “การ” นำหน้ากริยา','“การ” + “เรียน” = “การเรียน” เป็นอาการนาม ส่วน “เรียน” เป็นกริยา “โรงเรียน” “นักเรียน” เป็นสามานยนาม'),
+  mk('ข้อใดเป็นอาการนาม?','ความดี',['ดี','คนดี','ดีใจ'],'“ดี” เป็นคำวิเศษณ์ ลองหาคำที่มี “ความ” นำหน้า','“ความ” + “ดี” = “ความดี” เป็นอาการนาม ส่วน “ดี” เป็นวิเศษณ์ “คนดี” เป็นสามานยนาม'),
+  mk('ข้อใดเรียงคู่ (สามานยนาม – วิสามานยนาม) ได้ถูกต้อง?','จังหวัด – ขอนแก่น',['ขอนแก่น – จังหวัด','ฝูง – ขอนแก่น','ตัว – จังหวัด'],
+    'คำแรกต้องเป็นชื่อทั่วไป คำหลังต้องเป็นชื่อเฉพาะ','“จังหวัด” เป็นสามานยนาม (ทั่วไป) ส่วน “ขอนแก่น” เป็นวิสามานยนาม (ชื่อเฉพาะ)')
+];
+var SENT=[
+  mk('ในประโยค “ฝูงนกบินอยู่บนท้องฟ้า” คำใดเป็นสมุหนาม?','ฝูง',['นก','ท้องฟ้า','บิน'],'หาคำที่บอกว่านกอยู่รวมกันเป็นกลุ่ม','“ฝูง” เป็นสมุหนาม ส่วน “นก” “ท้องฟ้า” เป็นสามานยนาม “บิน” เป็นกริยา'),
+  mk('ในประโยค “สมชายซื้อปากกา 2 ด้ามที่ตลาด” คำใดเป็นลักษณนาม?','ด้าม',['สมชาย','ปากกา','ตลาด'],'หาคำที่ตามหลังตัวเลข 2','“ด้าม” เป็นลักษณนามของ “ปากกา” ส่วน “สมชาย” เป็นวิสามานยนาม “ปากกา” “ตลาด” เป็นสามานยนาม'),
+  mk('ในประโยค “น้องชอบการอ่านหนังสือ” คำใดเป็นอาการนาม?','การอ่าน',['น้อง','หนังสือ','ชอบ'],'หาคำที่มี “การ” นำหน้ากริยา','“การอ่าน” เป็นอาการนาม ส่วน “น้อง” “หนังสือ” เป็นสามานยนาม “ชอบ” เป็นกริยา'),
+  mk('ในประโยค “คุณครูพานักเรียนไปเที่ยวเชียงใหม่” คำใดเป็นวิสามานยนาม?','เชียงใหม่',['คุณครู','นักเรียน','พา'],'หาคำที่เป็นชื่อเฉพาะของสถานที่','“เชียงใหม่” เป็นวิสามานยนาม ส่วน “คุณครู” “นักเรียน” เป็นสามานยนาม “พา” เป็นกริยา'),
+  mk('ประโยคใดมีสมุหนามอยู่ด้วย?','ฝูงวัวเดินข้ามถนน',['วัวสามตัวเดินข้ามถนน','วัวชื่อทองดีเดินข้ามถนน','ความหิวทำให้วัวเดินหาอาหาร'],
+    'มองหาคำที่บอกว่าวัวอยู่รวมกันเป็นกลุ่ม','“ฝูง” ในประโยคแรกเป็นสมุหนาม ส่วนข้ออื่นมีลักษณนาม วิสามานยนาม หรืออาการนาม'),
+  mk('ประโยคใดมีลักษณนามอยู่ด้วย?','น้องมีดินสอ 3 แท่ง',['น้องชอบการวาดรูป','ฝูงนกบินกลับรัง','สมศรีไปเชียงใหม่'],
+    'มองหาคำที่ตามหลังตัวเลข','“แท่ง” ตามหลังจำนวนนับ “3” จึงเป็นลักษณนามของ “ดินสอ”'),
+  mk('ประโยคใดมีอาการนามอยู่ด้วย?','ฉันภูมิใจในความซื่อสัตย์ของเธอ',['ฝูงนกบินกลับรัง','ฉันซื้อปากกา 2 ด้าม','สมศรีไปตลาด'],
+    'มองหาคำที่ขึ้นต้นด้วย “ความ” หรือ “การ”','“ความซื่อสัตย์” เกิดจาก “ความ” + “ซื่อสัตย์” จึงเป็นอาการนาม'),
+  mk('ประโยคใดมีวิสามานยนามอยู่ด้วย?','สมศรีไปเที่ยวภูเก็ต',['นักเรียนไปโรงเรียน','ฝูงนกบินกลับรัง','ฉันซื้อปากกา 2 ด้าม'],
+    'มองหาชื่อเฉพาะของคนหรือสถานที่','“สมศรี” และ “ภูเก็ต” เป็นชื่อเฉพาะ จึงเป็นวิสามานยนาม')
+];
+var SAME=[
+  mk('คำใดเป็นนามชนิดเดียวกับ “โขลง”?','ฝูง',['ช้าง','ตัว','ความดี'],'หาก่อนว่า “โขลง” เป็นนามชนิดใด แล้วหาคำที่ชนิดเดียวกัน','“โขลง” และ “ฝูง” เป็นสมุหนามเหมือนกัน ส่วน “ช้าง” เป็นสามานยนาม “ตัว” เป็นลักษณนาม “ความดี” เป็นอาการนาม'),
+  mk('คำใดเป็นนามชนิดเดียวกับ “ความรัก”?','การเดินทาง',['รัก','ครู','ตัว'],'ดูว่ามี “การ” หรือ “ความ” นำหน้ากริยา/วิเศษณ์หรือไม่','“ความรัก” และ “การเดินทาง” เป็นอาการนามเหมือนกัน ส่วน “รัก” เป็นกริยา “ครู” เป็นสามานยนาม “ตัว” เป็นลักษณนาม'),
+  mk('คำใดเป็นนามชนิดเดียวกับ “เชียงใหม่”?','ภูเก็ต',['จังหวัด','เมือง','ถนน'],'“เชียงใหม่” เป็นชื่อเฉพาะ ลองหาชื่อเฉพาะอีกคำ','“เชียงใหม่” และ “ภูเก็ต” เป็นวิสามานยนาม ส่วน “จังหวัด” “เมือง” “ถนน” เป็นสามานยนาม'),
+  mk('คำว่า “คัน” ในวลี “รถ 2 คัน” เป็นนามชนิดเดียวกับคำใด?','ด้าม',['รถ','ฝูง','การขับขี่'],'“คัน” ตามหลังจำนวนนับ ลองหาคำที่ทำหน้าที่แบบเดียวกัน','“คัน” และ “ด้าม” เป็นลักษณนามเหมือนกัน ส่วน “รถ” เป็นสามานยนาม “ฝูง” เป็นสมุหนาม “การขับขี่” เป็นอาการนาม')
+];
+var NOT=[
+  mk('ข้อใดไม่ใช่สามานยนาม?','สมชาย',['ครู','โต๊ะ','แม่น้ำ'],'สามานยนามคือชื่อทั่วไป ลองหาคำที่เป็นชื่อเฉพาะ','“สมชาย” เป็นวิสามานยนาม ส่วน “ครู” “โต๊ะ” “แม่น้ำ” เป็นสามานยนาม'),
+  mk('ข้อใดไม่ใช่วิสามานยนาม?','ภูเขา',['ภูเก็ต','สมศรี','แม่น้ำโขง'],'ลองหาคำที่เป็นชื่อทั่วไป ไม่ใช่ชื่อเฉพาะ','“ภูเขา” เป็นสามานยนาม ส่วน “ภูเก็ต” “สมศรี” “แม่น้ำโขง” เป็นชื่อเฉพาะ'),
+  mk('ข้อใดไม่ใช่อาการนาม?','ฝูง',['ความดี','การอ่าน','ความสุข'],'อาการนามขึ้นต้นด้วย “การ” หรือ “ความ”','“ฝูง” เป็นสมุหนาม ส่วนที่เหลือเป็นอาการนาม'),
+  mk('ข้อใดไม่ใช่สมุหนาม?','ตัว',['ฝูง','โขลง','คณะ'],'สมุหนามบอกว่าเป็นกลุ่มหรือหมู่','“ตัว” เป็นลักษณนาม ส่วน “ฝูง” “โขลง” “คณะ” เป็นสมุหนาม'),
+  mk('ข้อใดไม่ใช่ลักษณนาม?','ความสุข',['คัน','ตัว','ด้าม'],'ลักษณนามตามหลังจำนวนนับ เช่น 2 ___','“ความสุข” เป็นอาการนาม ส่วน “คัน” “ตัว” “ด้าม” เป็นลักษณนาม'),
+  mk('ข้อใดเป็นคำกริยา ไม่ใช่อาการนาม?','อ่าน',['การอ่าน','ความรัก','การเดินทาง'],'ตัวเลือกที่ไม่มี “การ” หรือ “ความ” นำหน้า อาจเป็นกริยา','“อ่าน” เป็นกริยา ส่วน “การอ่าน” “ความรัก” “การเดินทาง” เป็นอาการนาม'),
+  mk('ข้อใดเป็นอาการนามที่สร้างจากคำวิเศษณ์?','ความสะอาด',['การกิน','การวิ่ง','การอ่าน'],'“กิน” “วิ่ง” “อ่าน” เป็นกริยา ลองหาคำที่มาจากคำบอกลักษณะ','“ความสะอาด” มาจาก “ความ” + วิเศษณ์ “สะอาด” ส่วนที่เหลือมาจากกริยา'),
+  mk('ข้อใดมีทั้งสมุหนามและลักษณนาม?','ฝูงวัว 5 ตัว',['วัว 5 ตัว','ฝูงวัวในทุ่งนา','ความสุขของวัว'],'ต้องมีทั้งคำบอกกลุ่ม และคำที่ตามหลังตัวเลข','“ฝูง” เป็นสมุหนาม และ “ตัว” เป็นลักษณนาม ส่วนข้ออื่นมีไม่ครบทั้งสองชนิด'),
+  mk('ข้อใดมีทั้งวิสามานยนามและอาการนาม?','สมชายมีความสุข',['สมชายซื้อปากกา 2 ด้าม','ครูมีความสุข','ฝูงนกบินกลับรัง'],'ต้องมีทั้งชื่อเฉพาะ และคำขึ้นต้นด้วย “ความ”','“สมชาย” เป็นวิสามานยนาม และ “ความสุข” เป็นอาการนาม')
+];
+/* โจทย์จำแนกคำนามในประโยคหลายคำ (ยาก) */
+var MAPDEF=[
+  {s:'คณะครูพานักเรียน 40 คนไปเที่ยวภูเก็ต',w:[['คณะ',2],['คน',3],['ภูเก็ต',1]]},
+  {s:'ฝูงช้างสามเชือกเดินผ่านแม่น้ำโขง',w:[['ฝูง',2],['เชือก',3],['แม่น้ำโขง',1]]},
+  {s:'ความขยันทำให้สมศรีอ่านหนังสือได้ 3 เล่ม',w:[['ความขยัน',4],['สมศรี',1],['เล่ม',3]]},
+  {s:'การเดินทางไปเชียงใหม่ใช้รถ 2 คัน',w:[['การเดินทาง',4],['เชียงใหม่',1],['คัน',3]]},
+  {s:'โขลงช้างกินกล้วย 5 หวี',w:[['โขลง',2],['ช้าง',0],['หวี',3]]},
+  {s:'เด็กมีความสุขที่ได้ไปเที่ยวทะเลอันดามัน',w:[['เด็ก',0],['ความสุข',4],['ทะเลอันดามัน',1]]},
+  {s:'สมชายแจกปากกาให้เพื่อนคนละ 2 ด้าม',w:[['สมชาย',1],['เพื่อน',0],['ด้าม',3]]},
+  {s:'ฝูงนกบินกลับรังด้วยความรวดเร็ว',w:[['ฝูง',2],['รัง',0],['ความรวดเร็ว',4]]},
+  {s:'การอ่านหนังสือวันละ 1 เล่มทำให้สมหญิงฉลาดขึ้น',w:[['การอ่าน',4],['เล่ม',3],['สมหญิง',1]]},
+  {s:'คณะนักท่องเที่ยวมาดูช้าง 3 เชือกที่เชียงใหม่',w:[['คณะ',2],['เชือก',3],['เชียงใหม่',1]]}
+];
+function mapSpec(m){
+  var types=m.w.map(function(x){return x[1];});
+  var words=m.w.map(function(x){return '“'+x[0]+'”';}).join(' ');
+  var seen={}; seen[types.join()]=1; var wrong=[], tries=0;
+  while(wrong.length<3&&tries<300){
+    tries++; var t=types.slice(), mode=tries%3, i=rand(3), j;
+    if(mode===0){j=rand(3); var tmp=t[i]; t[i]=t[j]; t[j]=tmp;}
+    else if(mode===1){t[i]=rand(5);}
+    else{j=(i+1+rand(2))%3; t[i]=rand(5); t[j]=rand(5);}
+    var k=t.join(); if(!seen[k]){seen[k]=1; wrong.push(t);}
+  }
+  function lab(a){return a.map(function(x){return T[x];}).join(' – ');}
+  return mk('ในประโยค “'+m.s+'” คำว่า '+words+' เป็นคำนามชนิดใดตามลำดับ?',
+    lab(types), wrong.map(lab),
+    'จำแนกทีละคำ แล้วตัดตัวเลือกที่ผิดทิ้งไปทีละข้อ',
+    m.w.map(function(x){return '“'+x[0]+'” = '+T[x[1]];}).join(', '));
+}
+
+/* =====================================================================
+   รูปแบบคำถามหลากหลาย (เลือกตอบ / ถูก-ผิด / แตะคำ / เลือกหลายข้อ / จับคู่ / จัดกลุ่ม / พิมพ์ตอบ)
+   ===================================================================== */
+function norm(s){return String(s).replace(/[\s\u200b]/g,'');}
+function pickItem(types){
+  var t=pick(types),w,c='';
+  if(t===2||t===3){var it=pick(t===2?W2:W3);w=it.w;c=it.c;}
+  else w=pick(t===0?W0:t===1?W1:W4);
+  return {w:w,t:t,c:c,label:c?'“'+w+'” ในวลี “'+c+'”':'“'+w+'”'};
+}
+function fin(s){s.k=s.q+'|'+s.a;if(!s.d)s.d=[];return s;}
+
+function genTF(types){
+  var it=pickItem(types),truth=Math.random()<.5,x=it.t;
+  if(!truth){x=pick([0,1,2,3,4].filter(function(i){return i!==it.t;}));}
+  return fin({type:'tf',q:it.label+' เป็น'+T[x]+' ใช่หรือไม่?',truth:truth,a:truth?'ถูก':'ผิด',hint:TH[x],
+    exp:it.label+' เป็น'+T[it.t]+' เพราะ'+RS[it.t]+(truth?'':' ไม่ใช่'+T[x])});
+}
+var SENTTAP=[
+  {w:['ฝูง','นก','บิน','อยู่','บน','ท้องฟ้า'],g:{0:2,1:0,5:0}},
+  {w:['สมชาย','ซื้อ','ปากกา','2','ด้าม','ที่','ตลาด'],g:{0:1,2:0,4:3,6:0}},
+  {w:['น้อง','ชอบ','การอ่าน','หนังสือ'],g:{0:0,2:4,3:0}},
+  {w:['คุณครู','พา','นักเรียน','ไป','เที่ยว','เชียงใหม่'],g:{0:0,2:0,5:1}},
+  {w:['ความขยัน','ทำให้','สมศรี','สอบ','ผ่าน'],g:{0:4,2:1}},
+  {w:['โขลง','ช้าง','เดิน','ข้าม','แม่น้ำโขง'],g:{0:2,1:0,4:1}},
+  {w:['แม่','ซื้อ','ไข่ไก่','6','ฟอง','ที่','ตลาด'],g:{0:0,2:0,4:3,6:0}},
+  {w:['คณะ','ครู','เดินทาง','ไป','ภูเก็ต','ด้วย','รถ','2','คัน'],g:{0:2,1:0,4:1,6:0,8:3}},
+  {w:['เด็ก','มี','ความสุข','ที่','ได้','เล่น','กับ','เพื่อน'],g:{0:0,2:4,7:0}},
+  {w:['พี่','ชอบ','การวิ่ง','ที่','สวนลุมพินี'],g:{0:0,2:4,4:1}},
+  {w:['ฝูง','ปลา','ว่าย','ใน','แม่น้ำเจ้าพระยา'],g:{0:2,1:0,4:1}},
+  {w:['ครู','แจก','สมุด','3','เล่ม','ให้','นักเรียน'],g:{0:0,2:0,4:3,6:0}},
+  {w:['ความซื่อสัตย์','ทำให้','เพื่อน','ไว้ใจ','สมชาย'],g:{0:4,2:0,4:1}},
+  {w:['ฉัน','เห็น','ช้าง','3','เชือก','ที่','เชียงใหม่'],g:{2:0,4:3,6:1}}
+];
+function genTap(types){
+  var s=null,cands=[],tries=0;
+  while(tries++<80){
+    s=pick(SENTTAP);cands=[];
+    for(var k in s.g){if(types.indexOf(s.g[k])>=0&&cands.indexOf(s.g[k])<0)cands.push(s.g[k]);}
+    if(cands.length)break;
+  }
+  if(!cands.length){s=SENTTAP[0];cands=[2];}
+  var t=pick(cands),targets=[],all=[];
+  for(var i=0;i<s.w.length;i++){
+    if(s.g[i]!==undefined){all.push('“'+s.w[i]+'” = '+T[s.g[i]]);if(s.g[i]===t)targets.push(s.w[i]);}
+  }
+  return fin({type:'tap',q:'แตะคำที่เป็น'+T[t]+'ในประโยคนี้',words:s.w,tags:s.g,target:t,a:targets.join(' หรือ '),hint:TH[t],
+    exp:'คำนามในประโยคนี้: '+all.join(', ')});
+}
+function genMulti(t,k){
+  var good=shuffle(PW[t].slice()).slice(0,k),used={};
+  good.forEach(function(w){used[w]=1;});
+  var others=[0,1,2,3,4].filter(function(i){return i!==t;}),bad=[],g=0;
+  while(bad.length<3&&g++<80){var w=pick(PW[pick(others)]);if(!used[w]){used[w]=1;bad.push(w);}}
+  var items=shuffle(good.map(function(w){return {w:w,ok:true};}).concat(bad.map(function(w){return {w:w,ok:false};})));
+  return fin({type:'multi',q:'เลือกคำที่เป็น'+T[t]+'ให้ครบทุกคำ',items:items,a:good.join(', '),
+    hint:TH[t]+' (มีทั้งหมด '+k+' คำ)',exp:'ที่เป็น'+T[t]+'คือ '+good.join(', ')+' เพราะ'+RS[t]});
+}
+function genMatch(n,allowed){
+  var ts=shuffle(allowed.slice()).slice(0,n),pairs=[],used={};
+  ts.forEach(function(t){var w,g=0;do{w=pick(PW[t]);}while(used[w]&&g++<40);used[w]=1;pairs.push({w:w,t:t});});
+  return fin({type:'match',q:'จับคู่คำกับชนิดของคำนามให้ถูกต้อง',pairs:pairs,
+    a:pairs.map(function(p){return p.w+' = '+T[p.t];}).join(', '),
+    hint:'เริ่มจากคู่ที่มั่นใจที่สุดก่อน แล้วตัดทิ้งไปทีละคู่',
+    exp:pairs.map(function(p){return '“'+p.w+'” เป็น'+T[p.t];}).join(', ')});
+}
+function genSort(nc){
+  var cats=shuffle([0,1,2,3,4]).slice(0,nc),per=nc===2?3:2,items=[],used={};
+  cats.forEach(function(t){var c=0,g=0;while(c<per&&g++<80){var w=pick(PW[t]);if(!used[w]){used[w]=1;items.push({w:w,t:t});c++;}}});
+  var by=cats.map(function(t){return T[t]+': '+items.filter(function(x){return x.t===t;}).map(function(x){return x.w;}).join(', ');});
+  return fin({type:'sort',q:'จัดคำแต่ละคำเข้ากลุ่มที่ถูกต้อง',cats:cats,items:shuffle(items),a:by.join(' | '),
+    hint:'ดูความหมายของแต่ละกลุ่ม แล้วลองจัดคำที่ง่ายที่สุดก่อน',exp:by.join(' · ')});
+}
+var FILLACC=[['รถยนต์',2,['คัน']],['บ้าน',3,['หลัง']],['หนังสือ',4,['เล่ม']],['แมว',2,['ตัว']],['ปากกา',2,['ด้าม','แท่ง']],
+  ['ไข่ไก่',6,['ฟอง','ลูก']],['รองเท้า',1,['คู่']],['มะม่วง',3,['ลูก','ผล']],['ต้นไม้',4,['ต้น']],['จาน',3,['ใบ']],
+  ['นักเรียน',30,['คน']],['ร่ม',1,['คัน']],['กล้วย',5,['หวี','ลูก','ผล']]];
+function genTypeFill(){
+  var f=pick(FILLACC);
+  return fin({type:'type',q:'พิมพ์ลักษณนามที่เติมในช่องว่าง: “'+f[0]+' '+f[1]+' ___”',accept:f[2],a:f[2].join(' หรือ '),aid:'',
+    hint:'นึกถึงคำที่เรามักพูดตามหลังตัวเลขเวลานับสิ่งนี้',
+    exp:'ลักษณนามของ “'+f[0]+'” คือ '+f[2].map(function(x){return '“'+x+'”';}).join(' หรือ ')});
+}
+var PREFIX=[['ขยัน','ความ'],['สะอาด','ความ'],['อ่าน','การ'],['กิน','การ'],['วิ่ง','การ'],['ซื่อสัตย์','ความ'],['รัก','ความ'],
+  ['เรียน','การ'],['ดี','ความ'],['กล้าหาญ','ความ'],['เดินทาง','การ'],['ออกกำลังกาย','การ']];
+function genTypePrefix(){
+  var p=pick(PREFIX);
+  return fin({type:'type',q:'พิมพ์ “การ” หรือ “ความ” เติมหน้าคำว่า “'+p[0]+'” เพื่อสร้างอาการนาม',accept:[p[1]],a:p[1],aid:'',
+    hint:'“การ” มักนำหน้าคำกริยา ส่วน “ความ” มักนำหน้าคำบอกลักษณะหรือความรู้สึก',
+    exp:'“'+p[1]+'” + “'+p[0]+'” = “'+p[1]+p[0]+'” เป็นอาการนาม'});
+}
+function genTypeName(){
+  var it=pickItem([0,1,2,3,4]);
+  return fin({type:'type',q:'พิมพ์ชื่อชนิดของคำนาม '+it.label,accept:[T[it.t]],a:T[it.t],aid:'ตัวช่วยสะกด: '+T.join(' · '),hint:TH[it.t],
+    exp:it.label+' เป็น'+T[it.t]+' เพราะ'+RS[it.t]});
+}
+
+/* --- จัดชุดคำถามของแต่ละด่าน (ด่านละ 10 ข้อ ยากขึ้นเรื่อยๆ และรูปแบบหลากหลาย) --- */
+function planLevel(L,used){
+  var out=[],ALL=[0,1,2,3,4];
+  function add(s){used[s.k]=1;out.push(s);}
+  function gen(fn,n){
+    for(var i=0;i<n;i++){var s=null,tries=0;do{s=fn();tries++;}while(used[s.k]&&tries<40);add(s);}
+  }
+  function hand(pool,n,isMap){
+    function key(s){return isMap?mapSpec(s).k:s.k;}
+    var c=pool.filter(function(s){return !used[key(s)];});
+    if(c.length<n){pool.forEach(function(s){delete used[key(s)];});c=pool.slice();}
+    shuffle(c);
+    for(var i=0;i<n;i++){add(isMap?mapSpec(c[i]):c[i]);}
+  }
+  var rt=function(){return pick(ALL);};
+  if(L<=1){
+    gen(function(){return genTF([0,1]);},3);
+    gen(function(){return genClassify([0,1]);},3);
+    gen(function(){return genTap([0,1]);},2);
+    gen(function(){return genFill(1);},2);
+  }else if(L===2){
+    gen(function(){return genTF([0,1,2,3]);},2);
+    gen(function(){return genClassify([0,1,2,3]);},2);
+    gen(function(){return genTap([0,1,2,3]);},2);
+    gen(function(){return genMatch(3,[0,1,2,3]);},1);
+    gen(genTypeFill,2);
+    hand(DEF,1);
+  }else if(L===3){
+    gen(function(){return genTF(ALL);},2);
+    gen(function(){return genMulti(rt(),2);},2);
+    gen(function(){return genMatch(4,ALL);},1);
+    gen(function(){return genTap(ALL);},2);
+    gen(genTypeFill,1);
+    gen(function(){return genSort(2);},1);
+    gen(function(){return genPick(ALL,false);},1);
+  }else if(L===4){
+    gen(function(){return genSort(2);},1);
+    gen(function(){return genSort(3);},1);
+    gen(function(){return genMulti(rt(),3);},2);
+    gen(function(){return genTap(ALL);},2);
+    gen(genTypePrefix,2);
+    hand(SENT,2);
+  }else if(L===5){
+    gen(function(){return genMatch(4,ALL);},2);
+    gen(function(){return genSort(3);},2);
+    gen(function(){return genMulti(rt(),3);},2);
+    hand(MAPDEF,2,true);
+    hand(NOT,2);
+  }else{
+    gen(genTypeName,2);
+    gen(function(){return genSort(3);},2);
+    gen(function(){return genMulti(rt(),3);},2);
+    gen(function(){return genMatch(4,ALL);},1);
+    hand(MAPDEF,1,true);
+    hand(NOT,1);
+    gen(function(){return genTap(ALL);},1);
+  }
+  return shuffle(out);
+}
+function buildOptions(spec){
+  var o=[{text:spec.a,ok:true}];
+  spec.d.forEach(function(t){o.push({text:t,ok:false});});
+  return shuffle(o);
+}
+/* วิธีเก็บเกี่ยวของแต่ละด่าน (หมุนเวียน) */
+var HSTYLE=['basket','crate','pull','balloon'];
+var HNAME=['เก็บใส่ตะกร้า','โยนลงลังไม้','ถอนทั้งต้นแล้วใส่รถเข็น','ผูกบอลลูนปล่อยขึ้นฟ้า'];
+function styleOf(L){return (L-1)%HSTYLE.length;}
+var FMT={mc:'เลือกตอบ',tf:'ถูก/ผิด',tap:'แตะคำ',multi:'เลือกหลายข้อ',match:'จับคู่',sort:'จัดกลุ่ม',type:'พิมพ์ตอบ'};
+var INSTR={mc:'เลือกคำตอบที่ถูกต้อง 1 ข้อ',tf:'กดปุ่ม ถูก หรือ ผิด',tap:'แตะคำในประโยคที่ตรงกับโจทย์',
+  multi:'แตะเลือกให้ครบทุกคำ แล้วกด “ตรวจคำตอบ”',match:'แตะคำทางซ้าย แล้วแตะชนิดทางขวาที่เป็นคู่กัน',
+  sort:'แตะคำ แล้วแตะกลุ่มที่คำนั้นอยู่',type:'พิมพ์คำตอบ แล้วกด “ตรวจ” (หรือกด Enter)'};
+
+
+/* =====================================================================
+   v4: ตัวละคร / พืชตามระดับ / สร้างคำถามตามความยาก
+   ===================================================================== */
+var GROW_MS=3000;
+var TIERCROP=[null,'carrot','tomato','corn','pineapple','watermelon'];
+var AV={skin:[0xffdbb4,0xf1c27d,0xe0ac69,0xc68642,0x8d5524,0x5c3a21],
+  hair:[0x2b1b12,0x6b3f1d,0xd9a441,0xc0392b,0x7f5fd3,0x1f1f1f],
+  shirt:[0xe53935,0x1e88e5,0x43a047,0xfdd835,0x8e24aa,0xfb8c00,0xffffff,0x00acc1],
+  pants:[0x1565c0,0x37474f,0x6d4c41,0x2e7d32,0x212121,0x8e24aa]};
+var HATS=['ไม่ใส่','หมวกฟาง','หมวกแก๊ป','มงกุฎดอกไม้','หมวกไหมพรม'];
+var ACCS=['ไม่มี','แว่นตา','ผ้าพันคอ','เป้สะพายหลัง'];
+var AVLEN={skin:6,hair:6,shirt:8,pants:6,hat:5,acc:4};
+var AVDEF={skin:1,hair:0,shirt:2,pants:0,hat:1,acc:0};
+
+/* e = ระดับความยากที่แท้จริง = ระดับพืช (1-5) + (ด่าน-1) */
+function makeQuestion(e,used){
+  var ALL=[0,1,2,3,4],rt=function(){return pick(ALL);},P;
+  var hDEF=function(){return pick(DEF);},hSENT=function(){return pick(SENT);},hNOT=function(){return pick(NOT);},
+      hMAP=function(){return mapSpec(pick(MAPDEF));};
+  if(e<=1){
+    P=[function(){return genTF([0,1]);},function(){return genClassify([0,1]);},function(){return genTap([0,1]);},function(){return genFill(1);}];
+  }else if(e===2){
+    P=[function(){return genTF([0,1,2,3]);},function(){return genClassify([0,1,2,3]);},function(){return genTap([0,1,2,3]);},
+       function(){return genMatch(3,[0,1,2,3]);},genTypeFill,hDEF];
+  }else if(e===3){
+    P=[function(){return genTF(ALL);},function(){return genMulti(rt(),2);},function(){return genMatch(4,ALL);},function(){return genTap(ALL);},
+       genTypeFill,function(){return genSort(2);},function(){return genPick(ALL,false);}];
+  }else if(e===4){
+    P=[function(){return genSort(2);},function(){return genSort(3);},function(){return genMulti(rt(),3);},function(){return genTap(ALL);},
+       genTypePrefix,hSENT,function(){return genPick(ALL,true);}];
+  }else if(e===5){
+    P=[function(){return genMatch(4,ALL);},function(){return genSort(3);},function(){return genMulti(rt(),3);},hMAP,hNOT];
+  }else{
+    P=[genTypeName,function(){return genSort(3);},function(){return genMulti(rt(),3);},function(){return genMatch(4,ALL);},hMAP,hNOT,function(){return genTap(ALL);}];
+  }
+  var s=null,t=0;
+  do{s=pick(P)();t++;}while(used[s.k]&&t<40);
+  used[s.k]=1;
+  return s;
+}
+/* =====================================================================
+   ฟาร์ม 3 มิติ (Three.js)
+   ===================================================================== */
+var Farm3D=(function(){
+  var R={}, THREE=null, renderer,scene,camera,stage;
+  var tweens=[],plots=[],targets={},basket,frame,frameMat,arrow,canG,started=false;
+  var geo={},mats={},texc={};
+  var BX=0,BZ=4.3;
+
+  function easeIO(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+  function backOut(t){var c=1.70158,u=t-1;return 1+(c+1)*u*u*u+c*u*u;}
+  function tween(ms,fn,ease){
+    return new Promise(function(res){
+      if(reduced()){fn(1);res();return;}
+      tweens.push({t0:performance.now(),ms:ms,fn:fn,ease:ease||easeIO,res:res});
+    });
+  }
+  function mat(color,rough,extra){
+    var key=color+'|'+(rough==null?.75:rough)+(extra?JSON.stringify(Object.keys(extra)):'');
+    if(!mats[key]){var o={color:color,roughness:rough==null?.75:rough,metalness:0};if(extra){for(var k in extra)o[k]=extra[k];}mats[key]=new THREE.MeshStandardMaterial(o);}
+    return mats[key];
+  }
+  function tex(key,w,h,draw,rx,ry){
+    if(texc[key])return texc[key];
+    var c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);
+    var t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;
+    if(rx)t.repeat.set(rx,ry||rx);
+    t.anisotropy=4;texc[key]=t;return t;
+  }
+  function mesh(g,m,cast){var o=new THREE.Mesh(g,m);o.castShadow=cast!==false;return o;}
+
+  /* ---------- ลายพื้นผิว (วาดเอง ไม่ต้องใช้รูป) ---------- */
+  function texGrass(){return tex('grass',256,256,function(g,w,h){
+    g.fillStyle='#5aaf50';g.fillRect(0,0,w,h);
+    var cols=['#6bc25c','#4d9c45','#7acf68','#57a64d','#468f3f'];
+    for(var i=0;i<3600;i++){g.fillStyle=cols[i%5];g.fillRect(Math.random()*w,Math.random()*h,2,3+Math.random()*5);}
+  },60,60);}
+  function texSoil(){return tex('soil',256,256,function(g,w,h){
+    g.fillStyle='#6a4126';g.fillRect(0,0,w,h);
+    for(var y=0;y<h;y+=32){g.fillStyle='#4c2e19';g.fillRect(0,y+8,w,9);g.fillStyle='#8a5a36';g.fillRect(0,y+19,w,5);}
+    for(var i=0;i<1800;i++){g.fillStyle=(i%2)?'#7b4d2d':'#573520';g.fillRect(Math.random()*w,Math.random()*h,2,2);}
+  },1,1);}
+  function texWall(){return tex('wall',256,128,function(g,w,h){
+    g.fillStyle='#c5392f';g.fillRect(0,0,w,h);
+    for(var x=0;x<w;x+=16){g.fillStyle='rgba(60,0,0,.35)';g.fillRect(x,0,2,h);g.fillStyle='rgba(255,255,255,.08)';g.fillRect(x+3,0,2,h);}
+    for(var i=0;i<400;i++){g.fillStyle='rgba(80,10,10,.15)';g.fillRect(Math.random()*w,Math.random()*h,3,10);}
+  },3,1.4);}
+  function texRoof(){return tex('roof',128,128,function(g,w,h){
+    g.fillStyle='#7d2c26';g.fillRect(0,0,w,h);
+    for(var y=0;y<h;y+=12){g.fillStyle='rgba(0,0,0,.28)';g.fillRect(0,y,w,2);}
+    for(var i=0;i<300;i++){g.fillStyle='rgba(255,255,255,.05)';g.fillRect(Math.random()*w,Math.random()*h,8,3);}
+  },4,1);}
+  function texWicker(){return tex('wicker',128,128,function(g,w,h){
+    g.fillStyle='#c58b3f';g.fillRect(0,0,w,h);
+    g.lineWidth=5;
+    for(var i=-h;i<w+h;i+=16){g.strokeStyle='#8f5f22';g.beginPath();g.moveTo(i,0);g.lineTo(i+h,h);g.stroke();g.strokeStyle='#e0aa5c';g.beginPath();g.moveTo(i+8,0);g.lineTo(i-h+8,h);g.stroke();}
+  },4,1);}
+  function texMelon(){return tex('melon',128,128,function(g,w,h){
+    g.fillStyle='#46a85a';g.fillRect(0,0,w,h);
+    for(var x=0;x<w;x+=16){g.fillStyle='#1f6b34';g.fillRect(x+3,0,8,h);}
+  },1,1);}
+  function texPine(){return tex('pine',128,128,function(g,w,h){
+    g.fillStyle='#ebb92b';g.fillRect(0,0,w,h);g.strokeStyle='#a9731a';g.lineWidth=3;
+    for(var i=-h;i<w+h;i+=22){g.beginPath();g.moveTo(i,0);g.lineTo(i+h,h);g.stroke();g.beginPath();g.moveTo(i+h,0);g.lineTo(i,h);g.stroke();}
+  },1,1);}
+  function texCorn(){return tex('corn',128,128,function(g,w,h){
+    g.fillStyle='#f4c92d';g.fillRect(0,0,w,h);
+    for(var x=4;x<w;x+=12)for(var y=4;y<h;y+=12){g.fillStyle='#ffe68a';g.beginPath();g.arc(x,y,4,0,6.3);g.fill();g.fillStyle='#e0a91c';g.beginPath();g.arc(x+2,y+2,2,0,6.3);g.fill();}
+  },1,2);}
+
+  /* ---------- พืช ---------- */
+  function leaf(len,wid,col){var m=mesh(geo.sphere,mat(col||0x3fae4a,.8));m.scale.set(len,.06,wid);return m;}
+  function bush(){
+    var g=new THREE.Group();
+    for(var i=0;i<8;i++){
+      var a=i/8*Math.PI*2+.3,lf=leaf(.5,.2,i%2?0x3fae4a:0x2f9a3d);
+      lf.position.set(Math.cos(a)*.4,.2+(i%2)*.09,Math.sin(a)*.4);
+      lf.rotation.y=-a;lf.rotation.z=.4+(i%2)*.15;g.add(lf);
+    }
+    return g;
+  }
+  function sproutNew(){
+    var g=new THREE.Group();
+    var st=mesh(geo.cyl,mat(0x3f9a3d));st.scale.set(.03,.3,.03);st.position.y=.15;g.add(st);
+    var l1=leaf(.2,.1);l1.position.set(.12,.3,0);l1.rotation.z=.5;g.add(l1);
+    var l2=leaf(.2,.1);l2.position.set(-.12,.3,0);l2.rotation.z=-.5;g.add(l2);
+    g.scale.setScalar(1.7);
+    return g;
+  }
+  var FRUIT={
+    mango:function(){var g=new THREE.Group();
+      var b=mesh(geo.sphere,mat(0xf6b11f,.45));b.scale.set(.36,.42,.3);b.rotation.z=.35;g.add(b);
+      var r=mesh(geo.sphere,mat(0xe4572e,.5));r.scale.set(.2,.24,.18);r.position.set(.1,.04,.14);g.add(r);
+      var st=mesh(geo.cyl,mat(0x6b4a1f));st.scale.set(.025,.12,.025);st.position.set(.08,.44,0);g.add(st);
+      var lf=leaf(.24,.1);lf.position.set(.22,.46,0);lf.rotation.z=.25;g.add(lf);
+      g.position.y=.78;return g;},
+    pineapple:function(){var g=new THREE.Group();
+      var b=mesh(geo.sphere,mat(0xffffff,.6,{map:texPine()}));b.scale.set(.3,.42,.3);g.add(b);
+      for(var i=0;i<9;i++){var p=new THREE.Group();p.rotation.y=i/9*Math.PI*2;var c=mesh(geo.cone,mat(i%2?0x3a9a3d:0x2d8a35));c.scale.set(.07,.5,.04);c.position.set(.03,.62,0);c.rotation.z=-.28;p.add(c);g.add(p);}
+      g.position.y=.82;return g;},
+    corn:function(){var g=new THREE.Group();
+      var b=mesh(geo.cyl,mat(0xffffff,.55,{map:texCorn()}));b.scale.set(.17,.8,.17);g.add(b);
+      var tp=mesh(geo.sphere,mat(0xf4c92d,.55));tp.scale.set(.17,.14,.17);tp.position.y=.4;g.add(tp);
+      for(var i=0;i<5;i++){var p=new THREE.Group();p.rotation.y=i/5*Math.PI*2;var c=mesh(geo.cone,mat(i%2?0x4cb04f:0x3a9a3d));c.scale.set(.12,.5,.06);c.position.set(.15,-.22,0);c.rotation.z=-.4;p.add(c);g.add(p);}
+      g.position.y=.9;return g;},
+    watermelon:function(){var g=new THREE.Group();
+      var b=mesh(geo.sphere,mat(0xffffff,.5,{map:texMelon()}));b.scale.set(.56,.46,.46);g.add(b);
+      var st=mesh(geo.cyl,mat(0x5a7a2a));st.scale.set(.03,.1,.03);st.position.y=.46;g.add(st);
+      g.position.y=.6;return g;},
+    tomato:function(){var g=new THREE.Group();
+      var spec=[[0,0,0,.32],[.38,-.12,.1,.25],[-.34,-.14,-.06,.23]];
+      spec.forEach(function(s){
+        var t=mesh(geo.sphere,mat(0xe5392c,.3));t.scale.set(s[3],s[3]*.92,s[3]);t.position.set(s[0],s[1],s[2]);g.add(t);
+        var c=mesh(geo.cone,mat(0x2f8f3d));c.scale.set(s[3]*.5,s[3]*.3,s[3]*.5);c.position.set(s[0],s[1]+s[3]*.85,s[2]);c.rotation.x=Math.PI;g.add(c);
+      });
+      g.position.y=.72;return g;},
+    carrot:function(){var g=new THREE.Group();
+      var c=mesh(geo.cone,mat(0xff8f1f,.6));c.scale.set(.17,.85,.17);c.rotation.x=Math.PI;g.add(c);
+      for(var i=0;i<5;i++){var p=new THREE.Group();p.rotation.y=i/5*Math.PI*2;var f=mesh(geo.cone,mat(0x3fae4a));f.scale.set(.05,.6,.03);f.position.set(.05,.7,0);f.rotation.z=-.3;p.add(f);g.add(p);}
+      g.position.y=.14;return g;}
+  };
+  var FCOL={mango:0xf6b11f,pineapple:0xebb92b,corn:0xf4c92d,watermelon:0x2f9e4f,tomato:0xe5392c,carrot:0xff8f1f};
+  var PS=1.7;
+  function plantNew(key){
+    var g=new THREE.Group(),b=bush(),f=FRUIT[key]();
+    g.add(b);g.add(f);
+    return {g:g,fruit:f,bush:b,col:FCOL[key]};
+  }
+
+  /* ---------- สร้างฉาก ---------- */
+  function buildWorld(){
+    var hemi=new THREE.HemisphereLight(0xe2f4ff,0x6f9a4a,.9);scene.add(hemi);
+    var sun=new THREE.DirectionalLight(0xfff0cf,.95);sun.position.set(6,11,7);sun.castShadow=true;
+    sun.shadow.mapSize.set(1024,1024);
+    var sc=sun.shadow.camera;sc.left=-10;sc.right=10;sc.top=10;sc.bottom=-10;sc.near=1;sc.far=40;
+    sun.shadow.bias=-.0006;scene.add(sun);
+
+    var ground=new THREE.Mesh(new THREE.PlaneGeometry(240,240),new THREE.MeshStandardMaterial({map:texGrass(),roughness:1}));
+    ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+
+    // เนินเขาไกลๆ
+    [[-26,-1.5,-40,30,6,0x5aa853],[8,-1.5,-46,36,7,0x4f9c4d],[34,-1.5,-38,26,5,0x63b25a],[-6,-1.5,-34,22,3.5,0x6bbb5f]].forEach(function(h){
+      var m=new THREE.Mesh(geo.sphere,new THREE.MeshStandardMaterial({color:h[5],roughness:1}));
+      m.scale.set(h[3],h[4],h[3]*.6);m.position.set(h[0],h[1],h[2]);scene.add(m);
+    });
+
+    // ยุ้งฉาง
+    var barn=new THREE.Group();barn.position.set(-.6,0,-6.6);
+    var wall=mesh(geo.box,mat(0xffffff,.85,{map:texWall()}));wall.scale.set(3.4,1.6,2.4);wall.position.y=.8;wall.receiveShadow=true;barn.add(wall);
+    var rm=mat(0xffffff,.8,{map:texRoof()});
+    var r1=mesh(geo.box,rm);r1.scale.set(3.7,.1,1.55);r1.position.set(0,2.04,-.62);r1.rotation.x=-.62;barn.add(r1);
+    var r2=mesh(geo.box,rm);r2.scale.set(3.7,.1,1.55);r2.position.set(0,2.04,.62);r2.rotation.x=.62;barn.add(r2);
+    var tri=new THREE.Shape();tri.moveTo(-1.2,0);tri.lineTo(1.2,0);tri.lineTo(0,.95);tri.lineTo(-1.2,0);
+    var tg=new THREE.ShapeGeometry(tri),tm=new THREE.MeshStandardMaterial({color:0xb8332a,roughness:.9,side:THREE.DoubleSide});
+    var t1=new THREE.Mesh(tg,tm);t1.position.set(1.7,1.6,0);t1.rotation.y=Math.PI/2;barn.add(t1);
+    var t2=new THREE.Mesh(tg,tm);t2.position.set(-1.7,1.6,0);t2.rotation.y=Math.PI/2;barn.add(t2);
+    var door=mesh(geo.box,mat(0x8e2723,.9),false);door.scale.set(1.0,1.05,.06);door.position.set(0,.53,1.2);barn.add(door);
+    var wm=mat(0xfff3e0,.8);
+    [[0,.53,1.25,1.1,.07,.07,0],[0,.53,1.25,1.1,.07,.07,0.8],[0,.53,1.25,1.1,.07,.07,-0.8]].forEach(function(b){
+      var tr=mesh(geo.box,wm,false);tr.scale.set(b[3],b[4],b[5]);tr.position.set(b[0],b[1],b[2]);tr.rotation.z=b[6];barn.add(tr);
+    });
+    var fr=mesh(geo.box,wm,false);fr.scale.set(1.12,.07,.07);fr.position.set(0,1.07,1.25);barn.add(fr);
+    var win=mesh(geo.cyl,mat(0xfff3e0,.8),false);win.scale.set(.2,.05,.2);win.rotation.x=Math.PI/2;win.position.set(0,1.45,1.22);barn.add(win);
+    scene.add(barn);
+    // ไซโล
+    var silo=mesh(geo.cyl,mat(0xcfd8dc,.5));silo.scale.set(.6,2.4,.6);silo.position.set(2.2,1.2,-6.9);scene.add(silo);
+    var sr=mesh(geo.cone,mat(0xb8332a,.7));sr.scale.set(.7,.7,.7);sr.position.set(2.2,2.75,-6.9);scene.add(sr);
+
+    // ต้นไม้
+    function tree(x,z,s,apples){
+      var g=new THREE.Group();g.position.set(x,0,z);
+      var tr=mesh(geo.cyl,mat(0x7a5230,1));tr.scale.set(.17*s,1.5*s,.17*s);tr.position.y=.75*s;g.add(tr);
+      [[0,2.1,0,1.15,0x3a9a45],[.7,1.8,.2,.8,0x2f8a3d],[-.65,1.85,-.1,.85,0x45a84e],[.1,2.7,0,.8,0x3a9a45]].forEach(function(c){
+        var b=mesh(geo.sphere,mat(c[4],.9));b.scale.setScalar(c[3]*s);b.position.set(c[0]*s,c[1]*s,c[2]*s);g.add(b);
+      });
+      if(apples){[[.5,2.1,.9],[-.6,1.9,.8],[.2,2.5,1.0],[-.2,1.7,1.0]].forEach(function(a){
+        var ap=mesh(geo.sphere,mat(0xe53935,.4));ap.scale.setScalar(.11*s);ap.position.set(a[0]*s,a[1]*s,a[2]*s);g.add(ap);});}
+      scene.add(g);
+    }
+    tree(-5.4,-3.8,1.1,true);tree(5.8,-4.2,1.2,false);tree(-7.6,.4,1,false);tree(7.8,1.2,.95,true);tree(3.8,-7.4,1.1,false);tree(-4.2,-8,1.2,false);
+
+    // รั้วไม้
+    var wood=mat(0xb07a42,.9);
+    for(var x=-6;x<=6;x+=1.2){var p=mesh(geo.box,wood);p.scale.set(.14,.9,.14);p.position.set(x,.45,-3.7);scene.add(p);}
+    [.35,.7].forEach(function(y){var r=mesh(geo.box,wood);r.scale.set(12.4,.09,.07);r.position.set(0,y,-3.7);scene.add(r);});
+    // ฟางก้อนกลม
+    [[-3.6,-5.0],[4.4,-5.4]].forEach(function(h){
+      var hs=mesh(geo.cyl,mat(0xdcb85a,1));hs.scale.set(.55,.6,.55);hs.rotation.z=Math.PI/2;hs.position.set(h[0],.55,h[1]);scene.add(hs);
+    });
+    // ดอกไม้เล็กๆ
+    var fc=[0xff6f91,0xffd23d,0xffffff,0xb388ff];
+    for(var i=0;i<40;i++){
+      var fx=(Math.random()*18-9),fz=Math.random()*6+3.5; if(Math.abs(fx)<1.6&&fz<5.2) continue;
+      var fl=mesh(geo.sphere,mat(fc[i%4],.6),false);fl.scale.setScalar(.07);fl.position.set(fx,.08,fz);scene.add(fl);
+    }
+  }
+
+  function buildPlots(){
+    var soilTex=texSoil(),wood=mat(0xa9743a,.9);
+    for(var r=0;r<2;r++)for(var c=0;c<3;c++){
+      var x=(c-1)*2.9,z=r===0?-1.3:1.9;
+      var g=new THREE.Group();g.position.set(x,0,z);
+      var sm=new THREE.MeshStandardMaterial({map:soilTex,roughness:1,color:0xffffff});
+      var soil=mesh(geo.box,sm);soil.scale.set(2.4,.34,2.2);soil.position.y=.17;soil.receiveShadow=true;g.add(soil);
+      [[0,.22,1.14,2.66,.44,.14],[0,.22,-1.14,2.66,.44,.14],[1.27,.22,0,.14,.44,2.4],[-1.27,.22,0,.14,.44,2.4]].forEach(function(f){
+        var b=mesh(geo.box,wood);b.scale.set(f[3],f[4],f[5]);b.position.set(f[0],f[1],f[2]);g.add(b);
+      });
+      var anchor=new THREE.Group();anchor.position.y=.34;g.add(anchor);
+      scene.add(g);
+      var mkr=new THREE.Mesh(new THREE.ConeGeometry(.22,.45,12),new THREE.MeshBasicMaterial({color:0xffd23d}));
+      mkr.rotation.x=Math.PI;mkr.position.set(x,2.45,z);mkr.visible=false;scene.add(mkr);
+      plots.push({x:x,z:z,g:g,anchor:anchor,soilMat:sm,sprout:null,plant:null,key:'carrot',marker:mkr,ripe:false});
+    }
+  }
+  function buildExtras(){
+    // ตะกร้า
+    basket=new THREE.Group();basket.position.set(BX,0,BZ);
+    var wk=new THREE.MeshStandardMaterial({map:texWicker(),roughness:.9,side:THREE.DoubleSide});
+    var body=new THREE.Mesh(new THREE.CylinderGeometry(.9,.68,.72,28,1,true),wk);body.position.y=.36;body.castShadow=true;basket.add(body);
+    var bot=new THREE.Mesh(new THREE.CylinderGeometry(.68,.68,.05,24),wk);bot.position.y=.03;basket.add(bot);
+    var rim=new THREE.Mesh(new THREE.TorusGeometry(.9,.05,8,28),new THREE.MeshStandardMaterial({color:0x8f5f22,roughness:.8}));rim.rotation.x=Math.PI/2;rim.position.y=.72;basket.add(rim);
+    var hd=new THREE.Mesh(new THREE.TorusGeometry(.9,.045,8,24,Math.PI),new THREE.MeshStandardMaterial({color:0x8f5f22,roughness:.8}));hd.position.y=.72;hd.rotation.y=Math.PI/2;basket.add(hd);
+    scene.add(basket);
+    targets.basket={obj:basket,x:BX,y:1.0,z:BZ,heap:[],n:0,cap:16,r:.42,zs:1,y0:.5};
+    var crate=new THREE.Group();crate.position.set(-3.3,0,4.4);
+    var cw=mat(0xb98a4e,.9);
+    [[0,.06,0,1.5,.08,1.1],[0,.3,.55,1.5,.5,.08],[0,.3,-.55,1.5,.5,.08],[.75,.3,0,.08,.5,1.1],[-.75,.3,0,.08,.5,1.1]].forEach(function(b){
+      var m=mesh(geo.box,cw);m.scale.set(b[3],b[4],b[5]);m.position.set(b[0],b[1],b[2]);m.receiveShadow=true;crate.add(m);});
+    scene.add(crate);
+    targets.crate={obj:crate,x:-3.3,y:.9,z:4.4,heap:[],n:0,cap:14,r:.4,zs:.7,y0:.34};
+    var cart=new THREE.Group();cart.position.set(3.3,0,4.4);
+    var cgm=mat(0x2e8b57,.5),dk=mat(0x333333,.7);
+    [[0,.5,0,1.4,.06,1.0],[0,.72,.5,1.4,.4,.06],[0,.72,-.5,1.4,.4,.06],[.7,.72,0,.06,.4,1.0],[-.7,.72,0,.06,.4,1.0]].forEach(function(b){
+      var m=mesh(geo.box,cgm);m.scale.set(b[3],b[4],b[5]);m.position.set(b[0],b[1],b[2]);cart.add(m);});
+    var wh=mesh(geo.cyl,dk);wh.scale.set(.28,.08,.28);wh.rotation.x=Math.PI/2;wh.position.set(-.9,.28,0);cart.add(wh);
+    [[.55,.25,.4],[.55,.25,-.4]].forEach(function(b){var m=mesh(geo.box,dk);m.scale.set(.08,.5,.08);m.position.set(b[0],b[1],b[2]);cart.add(m);});
+    [[1.15,.62,.4],[1.15,.62,-.4]].forEach(function(b){var m=mesh(geo.box,dk);m.scale.set(.9,.06,.06);m.position.set(b[0],b[1],b[2]);m.rotation.z=.25;cart.add(m);});
+    scene.add(cart);
+    targets.cart={obj:cart,x:3.3,y:1.0,z:4.4,heap:[],n:0,cap:14,r:.38,zs:.7,y0:.68};
+    // กรอบเรืองแสงแปลงที่กำลังทำ
+    frameMat=new THREE.MeshBasicMaterial({color:0xffd23d,transparent:true,opacity:.9});
+    frame=new THREE.Group();
+    [[0,.5,1.32,2.95,.09,.1],[0,.5,-1.32,2.95,.09,.1],[1.47,.5,0,.1,.09,2.75],[-1.47,.5,0,.1,.09,2.75]].forEach(function(f){
+      var b=new THREE.Mesh(geo.box,frameMat);b.scale.set(f[3],f[4],f[5]);b.position.set(f[0],f[1],f[2]);frame.add(b);
+    });
+    frame.visible=false;scene.add(frame);
+    arrow=new THREE.Mesh(new THREE.ConeGeometry(.28,.55,16),new THREE.MeshBasicMaterial({color:0xffd23d}));
+    arrow.rotation.x=Math.PI;arrow.visible=false;scene.add(arrow);
+    // บัวรดน้ำ
+    canG=new THREE.Group();
+    var cm=mat(0x3b82f6,.35);
+    var cb=mesh(geo.cyl,cm);cb.scale.set(.32,.42,.32);canG.add(cb);
+    var sp=mesh(geo.cyl,cm);sp.scale.set(.05,.55,.05);sp.position.set(-.42,.15,0);sp.rotation.z=.9;canG.add(sp);
+    var rose=mesh(geo.cone,mat(0x2563eb,.35));rose.scale.set(.13,.1,.13);rose.position.set(-.64,.33,0);rose.rotation.z=.9+Math.PI/2*0;canG.add(rose);
+    var hdl=new THREE.Mesh(new THREE.TorusGeometry(.22,.04,8,16,Math.PI),cm);hdl.position.set(.32,.05,0);hdl.rotation.z=-Math.PI/2;canG.add(hdl);
+    canG.visible=false;scene.add(canG);
+  }
+
+  /* ---------- กล้อง ---------- */
+  var FOCUS=[];
+  function fit(){
+    var w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+    var tgt=new THREE.Vector3(0,.5,.8),pitch=22*Math.PI/180,v=new THREE.Vector3();
+    for(var d=6;d<=44;d+=.4){
+      camera.position.set(0,tgt.y+Math.sin(pitch)*d,tgt.z+Math.cos(pitch)*d);
+      camera.lookAt(tgt);camera.updateMatrixWorld();
+      var ok=true;
+      for(var i=0;i<FOCUS.length;i++){v.copy(FOCUS[i]).project(camera);if(Math.abs(v.x)>.96||Math.abs(v.y)>.96){ok=false;break;}}
+      if(ok)break;
+    }
+  }
+  function resize(){
+    if(!renderer)return;
+    var w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();fit();
+  }
+
+  /* ---------- วนเรนเดอร์ ---------- */
+  function loop(now){
+    requestAnimationFrame(loop);
+    if(tweens.length){
+      var keep=[];
+      for(var i=0;i<tweens.length;i++){
+        var tw=tweens[i],p=Math.min(1,(now-tw.t0)/tw.ms);
+        try{tw.fn(tw.ease(p));}catch(e){}
+        if(p>=1)tw.res();else keep.push(tw);
+      }
+      tweens=keep;
+    }
+    if(frame.visible){frameMat.opacity=.7+.3*Math.sin(now/220);arrow.position.y=2.5+Math.sin(now/260)*.18;}
+    stepWorld(now);
+    renderer.render(scene,camera);
+  }
+
+  /* ---------- API ---------- */
+  R.init=function(st,cb){
+    CB=cb||{};
+    THREE=window.THREE;
+    if(!THREE)return false;
+    try{
+      stage=st;
+      renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+      renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+      renderer.setClearColor(0xcdeeff,0);
+      stage.appendChild(renderer.domElement);
+      var rc=new THREE.Raycaster(),ndc=new THREE.Vector2(),pl1=new THREE.Plane(new THREE.Vector3(0,1,0),-.34),pl0=new THREE.Plane(new THREE.Vector3(0,1,0),0),hit=new THREE.Vector3();
+      renderer.domElement.addEventListener('pointerdown',function(ev){
+        var r=renderer.domElement.getBoundingClientRect();
+        ndc.set(((ev.clientX-r.left)/r.width)*2-1,-((ev.clientY-r.top)/r.height)*2+1);
+        rc.setFromCamera(ndc,camera);
+        if(rc.ray.intersectPlane(pl1,hit)){
+          for(var i=0;i<plots.length;i++){var p=plots[i];if(Math.abs(hit.x-p.x)<1.3&&Math.abs(hit.z-p.z)<1.2){if(CB.onTapPlot)CB.onTapPlot(i);return;}}
+        }
+        if(rc.ray.intersectPlane(pl0,hit)){R.walkTo(hit.x,hit.z);}
+      });
+      scene=new THREE.Scene();scene.fog=new THREE.Fog(0xcdeeff,18,52);
+      camera=new THREE.PerspectiveCamera(46,1,.1,220);
+      geo.sphere=new THREE.SphereGeometry(1,20,14);
+      geo.box=new THREE.BoxGeometry(1,1,1);
+      geo.cyl=new THREE.CylinderGeometry(1,1,1,20);
+      geo.cone=new THREE.ConeGeometry(1,1,14);
+      [-4.2,4.2].forEach(function(x){[0,2.1].forEach(function(y){[-2.7,5.3].forEach(function(z){FOCUS.push(new THREE.Vector3(x,y,z));});});});
+      buildWorld();buildPlots();buildExtras();
+      R.avatar(AVDEF);
+      resize();
+      if(window.ResizeObserver){new ResizeObserver(resize).observe(stage);}
+      window.addEventListener('resize',resize);
+      renderer.render(scene,camera);
+      requestAnimationFrame(loop);
+      return true;
+    }catch(e){
+      try{if(renderer&&renderer.domElement.parentNode)renderer.domElement.parentNode.removeChild(renderer.domElement);}catch(_){}
+      return false;
+    }
+  };
+  function clearPlot(p){
+    if(p.plant){p.anchor.remove(p.plant.g);p.plant=null;}
+    if(p.sprout){p.anchor.remove(p.sprout);p.sprout=null;}
+    p.soilMat.color.setRGB(1,1,1);p.anchor.rotation.z=0;
+  }
+  function sprout(p){p.sprout=sproutNew();p.anchor.add(p.sprout);}
+  function clearHeaps(){
+    Object.keys(targets).forEach(function(k){var tg=targets[k];tg.heap.forEach(function(m){tg.obj.remove(m);});tg.heap=[];tg.n=0;tg.obj.scale.set(1,1,1);});
+  }
+  R.reset=function(){
+    plots.forEach(function(p){clearPlot(p);setRipe(p,false);});
+    clearHeaps();
+    frame.visible=false;arrow.visible=false;
+    if(av){av.g.position.set(0,0,.3);yaw=0;faceYaw=null;walkTarget=null;pendingPlot=-1;inputX=0;inputZ=0;nearIdx=-2;checkNear(true);}
+  };
+  R.setActive=function(i){
+    if(i<0||!plots[i]){frame.visible=false;return;}
+    var p=plots[i];frame.position.set(p.x,0,p.z);frame.visible=true;arrow.visible=false;
+  };
+  R.assign=function(i,key){plots[i].key=key;};
+  R.water=function(i){
+    var p=plots[i],can=canG;
+    can.visible=true;can.position.set(p.x+1.15,2.3,p.z+.2);can.scale.setScalar(.01);can.rotation.z=0;
+    var drops=[],start=new THREE.Vector3(),dm=new THREE.MeshBasicMaterial({color:0x5ec8ff,transparent:true,opacity:.9});
+    return tween(260,function(t){can.scale.setScalar(.01+t);})
+    .then(function(){return tween(320,function(t){can.rotation.z=t*.6;});})
+    .then(function(){
+      can.updateMatrixWorld(true);start.set(-.66,.3,0);can.localToWorld(start);
+      for(var k=0;k<18;k++){var d=new THREE.Mesh(geo.sphere,dm);d.scale.setScalar(.06);d.visible=false;
+        d.userData={dx:(Math.random()-.5)*.5,dz:(Math.random()-.5)*.5,delay:k*38};scene.add(d);drops.push(d);}
+      var tgtY=p.anchor.position.y+.1;
+      return Promise.all([
+        tween(900,function(t){
+          var tm=t*900;
+          drops.forEach(function(d){
+            var l=(tm-d.userData.delay)/420;
+            if(l<=0||l>=1){d.visible=false;return;}
+            d.visible=true;
+            d.position.set(start.x+(p.x-start.x)*l*.7+d.userData.dx*l,start.y-(start.y-tgtY)*l*l,start.z+(p.z-start.z)*l*.7+d.userData.dz*l);
+          });
+        },function(t){return t;}),
+        tween(900,function(t){var c=1-.38*t;p.soilMat.color.setRGB(c,c,c);},function(t){return t;})
+      ]);
+    })
+    .then(function(){drops.forEach(function(d){scene.remove(d);});
+      return tween(260,function(t){can.rotation.z=.6*(1-t);can.scale.setScalar(1.01-t);});})
+    .then(function(){can.visible=false;});
+  };
+  /* ---------- ตัวละคร + การเดิน + ปฏิสัมพันธ์ ---------- */
+  var CB={},av=null,avCfg=null,inputX=0,inputZ=0,walkTarget=null,pendingPlot=-1,nearIdx=-1,actT=0,phase=0,yaw=0,faceYaw=null,lastT=0;
+  function standOf(i){var c=i%3,r=Math.floor(i/3);return {x:(c-1)*2.9,z:r===0?.3:3.45};}
+  function angDiff(a,b){var d=(a-b)%(2*Math.PI);if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;return d;}
+  function setRipe(p,f){p.ripe=!!f;if(p.marker)p.marker.visible=!!f;}
+  function limb(x,y,len,r,m){
+    var pv=new THREE.Group();pv.position.set(x,y,0);
+    var l=mesh(geo.cyl,m);l.scale.set(r,len,r);l.position.y=-len/2;pv.add(l);return pv;
+  }
+  function buildAvatar(cfg){
+    var g=new THREE.Group();
+    var skin=mat(AV.skin[cfg.skin],.7),hair=mat(AV.hair[cfg.hair],.85),shirt=mat(AV.shirt[cfg.shirt],.8),
+        pants=mat(AV.pants[cfg.pants],.85),shoe=mat(0x5d4037,.9),dark=mat(0x222222,.5);
+    var legL=limb(-.14,.55,.5,.1,pants),legR=limb(.14,.55,.5,.1,pants);
+    [legL,legR].forEach(function(l){var s=mesh(geo.box,shoe);s.scale.set(.17,.08,.28);s.position.set(0,-.5,.05);l.add(s);g.add(l);});
+    var body=mesh(geo.box,shirt);body.scale.set(.5,.52,.3);body.position.y=.82;g.add(body);
+    var armL=limb(-.33,1.0,.42,.075,shirt),armR=limb(.33,1.0,.42,.075,shirt);
+    [armL,armR].forEach(function(a){var h=mesh(geo.sphere,skin);h.scale.setScalar(.08);h.position.y=-.45;a.add(h);g.add(a);});
+    var head=mesh(geo.sphere,skin);head.scale.setScalar(.26);head.position.y=1.34;g.add(head);
+    [-.09,.09].forEach(function(x){var e=mesh(geo.sphere,dark,false);e.scale.setScalar(.035);e.position.set(x,1.38,.235);g.add(e);});
+    var hr=mesh(geo.sphere,hair);hr.scale.set(.275,.21,.275);hr.position.set(0,1.45,-.03);g.add(hr);
+    var hat=cfg.hat;
+    if(hat===1){var br=mesh(geo.cyl,mat(0xe6c36a,.9));br.scale.set(.5,.03,.5);br.position.y=1.56;g.add(br);
+      var dm=mesh(geo.sphere,mat(0xe6c36a,.9));dm.scale.set(.27,.17,.27);dm.position.y=1.58;g.add(dm);
+      var bd=mesh(geo.cyl,mat(0xc0392b,.8),false);bd.scale.set(.272,.03,.272);bd.position.y=1.575;g.add(bd);}
+    else if(hat===2){var cp=mesh(geo.sphere,mat(0xd32f2f,.7));cp.scale.set(.285,.17,.285);cp.position.set(0,1.54,0);g.add(cp);
+      var vs=mesh(geo.box,mat(0xb71c1c,.7));vs.scale.set(.26,.03,.22);vs.position.set(0,1.5,.27);g.add(vs);}
+    else if(hat===3){var fc=[0xff80ab,0xffd54f];for(var k=0;k<7;k++){var a=k/7*Math.PI*2,f=mesh(geo.sphere,mat(fc[k%2],.6),false);f.scale.setScalar(.06);f.position.set(Math.cos(a)*.24,1.56,Math.sin(a)*.24);g.add(f);}}
+    else if(hat===4){var bn=mesh(geo.sphere,mat(0x3f51b5,.9));bn.scale.set(.29,.2,.29);bn.position.y=1.54;g.add(bn);
+      var pm=mesh(geo.sphere,mat(0xffffff,.9),false);pm.scale.setScalar(.07);pm.position.y=1.74;g.add(pm);}
+    var acc=cfg.acc;
+    if(acc===1){[-.09,.09].forEach(function(x){var r=new THREE.Mesh(new THREE.TorusGeometry(.07,.014,8,16),dark);r.position.set(x,1.38,.25);g.add(r);});
+      var bg=mesh(geo.box,dark,false);bg.scale.set(.06,.012,.012);bg.position.set(0,1.38,.255);g.add(bg);}
+    else if(acc===2){var sc=new THREE.Mesh(new THREE.TorusGeometry(.2,.06,8,16),mat(0xe53935,.8));sc.rotation.x=Math.PI/2;sc.position.y=1.1;sc.castShadow=true;g.add(sc);}
+    else if(acc===3){var bp=mesh(geo.box,mat(0x6d4c41,.85));bp.scale.set(.34,.4,.16);bp.position.set(0,.86,-.24);g.add(bp);}
+    g.scale.setScalar(.95);
+    return {g:g,legL:legL,legR:legR,armL:armL,armR:armR};
+  }
+  function checkNear(force){
+    if(!av)return;
+    var best=-1,bd=1.15;
+    for(var i=0;i<plots.length;i++){var s=standOf(i),d=Math.hypot(av.g.position.x-s.x,av.g.position.z-s.z);if(d<bd){bd=d;best=i;}}
+    if(best!==nearIdx||force){nearIdx=best;if(CB.onNear)CB.onNear(best);}
+  }
+  function stepWorld(now){
+    var dt=lastT?Math.min(.05,(now-lastT)/1000):.016;lastT=now;
+    plots.forEach(function(p){if(p.marker&&p.marker.visible){p.marker.position.y=2.45+Math.sin(now/260+p.x)*.15;}});
+    if(!av)return;
+    var mx=0,mz=0,moving=false;
+    if(inputX||inputZ){var l=Math.hypot(inputX,inputZ);mx=inputX/l;mz=inputZ/l;walkTarget=null;pendingPlot=-1;moving=true;faceYaw=null;}
+    else if(walkTarget){
+      var dx=walkTarget.x-av.g.position.x,dz=walkTarget.z-av.g.position.z,d=Math.hypot(dx,dz);
+      if(d<.1){walkTarget=null;var pp=pendingPlot;pendingPlot=-1;checkNear(true);if(pp>=0&&nearIdx===pp&&CB.onArrive)CB.onArrive(pp);}
+      else{mx=dx/d;mz=dz/d;moving=true;faceYaw=null;}
+    }
+    if(moving){
+      var sp=3.8*dt,nx=av.g.position.x+mx*sp,nz=av.g.position.z+mz*sp;
+      av.g.position.x=Math.max(-5.3,Math.min(5.3,nx));av.g.position.z=Math.max(-3.0,Math.min(3.9,nz));
+      yaw+=angDiff(Math.atan2(mx,mz),yaw)*Math.min(1,dt*12);phase+=dt*11;
+    }else{
+      if(faceYaw!==null)yaw+=angDiff(faceYaw,yaw)*Math.min(1,dt*10);
+      phase*=.9;
+    }
+    av.g.rotation.y=yaw;
+    var sw=moving?Math.sin(phase)*.7:0;
+    av.legL.rotation.x=sw;av.legR.rotation.x=-sw;
+    av.armL.rotation.x=-sw*.9;av.armR.rotation.x=sw*.9;
+    if(actT>0){var a=Math.sin(Math.PI*Math.min(1,actT));av.armR.rotation.x=-1.9*a;av.armL.rotation.x=-1.1*a;}
+    av.g.position.y=moving?Math.abs(Math.sin(phase))*.06:Math.sin(now/500)*.012;
+    if(moving)checkNear(false);
+  }
+  R.avatar=function(cfg){
+    avCfg=cfg;
+    var pos=av?av.g.position.clone():new THREE.Vector3(0,0,.3);
+    if(av)scene.remove(av.g);
+    av=buildAvatar(cfg);av.g.position.copy(pos);av.g.rotation.y=yaw;scene.add(av.g);
+  };
+  R.setInput=function(x,z){inputX=x;inputZ=z;};
+  R.walkTo=function(x,z){walkTarget={x:Math.max(-5.3,Math.min(5.3,x)),z:Math.max(-3.0,Math.min(3.9,z))};pendingPlot=-1;};
+  R.walkToPlot=function(i){
+    var s=standOf(i);pendingPlot=i;walkTarget={x:s.x,z:s.z};
+    if(av&&Math.hypot(av.g.position.x-s.x,av.g.position.z-s.z)<.1){walkTarget=null;pendingPlot=-1;checkNear(true);setTimeout(function(){if(CB.onArrive)CB.onArrive(i);},0);}
+  };
+  R.near=function(){return Math.max(-1,nearIdx);};
+  R.act=function(i){
+    var p=plots[i];
+    if(av&&p)faceYaw=Math.atan2(p.x-av.g.position.x,p.z-av.g.position.z);
+    return tween(520,function(t){actT=t>=1?0:t;},function(t){return t;});
+  };
+  R.plant=function(i,key){
+    var p=plots[i];p.key=key;clearPlot(p);sprout(p);p.sprout.scale.setScalar(.01);
+    return tween(350,function(t){p.sprout.scale.setScalar(Math.max(.01,1.7*t));},backOut);
+  };
+  R.fertilize=function(i){
+    var p=plots[i],ds=[],dm=new THREE.MeshBasicMaterial({color:0xcaa24a}),gm=new THREE.MeshBasicMaterial({color:0x7bd36b});
+    for(var k=0;k<18;k++){
+      var d=new THREE.Mesh(geo.sphere,k%3?dm:gm);d.scale.setScalar(.05);d.visible=false;
+      d.userData={x:(Math.random()-.5)*1.6,z:(Math.random()-.5)*1.4,delay:k*35};scene.add(d);ds.push(d);
+    }
+    var ty=p.anchor.position.y+.1;
+    return Promise.all([
+      tween(900,function(t){
+        var tm=t*900;
+        ds.forEach(function(d){var l=(tm-d.userData.delay)/380;if(l<=0||l>=1){d.visible=false;return;}d.visible=true;d.position.set(p.x+d.userData.x*.8,2.4-(2.4-ty)*l*l,p.z+d.userData.z*.8);});
+      },function(t){return t;}),
+      tween(900,function(t){var c=.62;p.soilMat.color.setRGB(c*(1-.12*t),c*(1+.1*t),c*(1-.18*t));},function(t){return t;})
+    ]).then(function(){ds.forEach(function(d){scene.remove(d);});});
+  };
+  R.grow=function(i,ms){
+    var p=plots[i];
+    if(p.sprout){p.anchor.remove(p.sprout);p.sprout=null;}
+    var pl=plantNew(p.key);p.plant=pl;p.anchor.add(pl.g);pl.g.scale.setScalar(.3*PS);
+    return tween(ms||3000,function(t){pl.g.scale.setScalar(PS*(.3+.7*t));},function(t){return t;}).then(function(){setRipe(p,true);});
+  };
+  function addHeap(tg,col){
+    var slot=tg.n%tg.cap;tg.n++;
+    var m=tg.heap[slot];
+    if(!m){
+      m=mesh(geo.sphere,mat(col,.5),false);m.scale.setScalar(.18);
+      var per=6,layer=Math.floor(slot/per),idx=slot%per,a=idx/per*Math.PI*2+layer*.6,r=Math.max(.12,tg.r-layer*.1);
+      m.position.set(Math.cos(a)*r,tg.y0+layer*.15,Math.sin(a)*r*tg.zs);tg.obj.add(m);tg.heap[slot]=m;
+    }else{m.material=mat(col,.5);}
+  }
+  function bump(tg){return tween(260,function(t){var s=1+.1*Math.sin(Math.PI*t);tg.obj.scale.set(s,1/s,s);});}
+  function arcTo(fruit,p0,p1,peak,spin,ms){
+    var mid=p0.clone().lerp(p1,.5);mid.y+=peak;var s0=fruit.scale.x;
+    return tween(ms,function(t){
+      var a=1-t;
+      fruit.position.set(a*a*p0.x+2*a*t*mid.x+t*t*p1.x,a*a*p0.y+2*a*t*mid.y+t*t*p1.y,a*a*p0.z+2*a*t*mid.z+t*t*p1.z);
+      fruit.scale.setScalar(s0*(1-.6*t));
+      if(spin){fruit.rotation.y=t*Math.PI*spin;fruit.rotation.x=t*Math.PI*spin*.5;}
+    });
+  }
+  R.harvest=function(i,style){
+    var p=plots[i],pl=p.plant;if(!pl)return Promise.resolve();
+    p.plant=null;setRipe(p,false);
+    var pre=Promise.resolve();
+    if(style==='pull'){
+      var gy=pl.g.position.y;
+      pre=tween(520,function(t){pl.g.position.y=gy+.5*t;pl.g.rotation.z=Math.sin(t*Math.PI*8)*.12*(1-t);}).then(function(){pl.g.rotation.z=0;});
+    }
+    return pre.then(function(){
+      var fruit=pl.fruit;pl.g.updateMatrixWorld(true);scene.attach(fruit);
+      var p0=fruit.position.clone();
+      var shrink=tween(500,function(t){pl.g.scale.setScalar(Math.max(.001,PS*(1-t)));}).then(function(){p.anchor.remove(pl.g);});
+      if(style==='balloon'){
+        var bg=new THREE.Group();scene.add(bg);
+        var bal=mesh(geo.sphere,mat(pick([0xff5d73,0x4da3ff,0xffc93d,0xb279ff]),.3));bal.scale.set(.34,.4,.34);bal.position.y=.95;bg.add(bal);
+        var knot=mesh(geo.cone,mat(0xaaaaaa,.5));knot.scale.set(.06,.1,.06);knot.position.y=.52;knot.rotation.x=Math.PI;bg.add(knot);
+        var str=mesh(geo.cyl,mat(0xffffff,.8),false);str.scale.set(.012,.5,.012);str.position.y=.25;bg.add(str);
+        var sc0=fruit.scale.x;
+        var fl=tween(1500,function(t){
+          fruit.position.set(p0.x+Math.sin(t*Math.PI*3)*.5*t,p0.y+t*6.5,p0.z);
+          bg.position.copy(fruit.position);fruit.rotation.y=t*Math.PI*2;fruit.scale.setScalar(sc0*(1-.35*t));
+        },function(t){return t*t*(3-2*t);}).then(function(){scene.remove(fruit);scene.remove(bg);});
+        return Promise.all([fl,shrink]);
+      }
+      var tg=style==='crate'?targets.crate:style==='pull'?targets.cart:targets.basket;
+      var p1=new THREE.Vector3(tg.x,tg.y,tg.z);
+      var main=arcTo(fruit,p0,p1,style==='crate'?3.6:2.4,style==='crate'?0:3,style==='crate'?1000:850).then(function(){
+        scene.remove(fruit);addHeap(tg,pl.col);return bump(tg);
+      });
+      return Promise.all([main,shrink]);
+    });
+  };
+  R.reseed=function(i){var p=plots[i];clearPlot(p);setRipe(p,false);};
+  R.wrong=function(i){
+    frameMat.color.setHex(0xff4d4d);
+    setTimeout(function(){frameMat.color.setHex(0xffd23d);},420);
+    var p=plots[i];if(!p)return;
+    tween(320,function(t){p.anchor.rotation.z=Math.sin(t*Math.PI*6)*(1-t)*.12;if(t>=1)p.anchor.rotation.z=0;},function(t){return t;});
+  };
+  return R;
+})();
+
+/* =====================================================================
+   ฟาร์มสำรอง (กรณีอุปกรณ์ไม่รองรับ 3D) — แตะที่แปลงเพื่อทำงานได้เหมือนกัน
+   ===================================================================== */
+var Flat=(function(){
+  var els=[],keys=[],R={},CB={},near=-1;
+  function plant(i){return els[i].firstChild;}
+  R.init=function(st,cb){
+    CB=cb||{};
+    var f=document.createElement('div');f.className='field';
+    for(var i=0;i<N_PLOTS;i++){(function(i){
+      var p=document.createElement('div');p.className='plot';p.style.cursor='pointer';
+      var pl=document.createElement('span');pl.className='plant emoji';pl.textContent='';
+      var so=document.createElement('div');so.className='soil';
+      p.appendChild(pl);p.appendChild(so);
+      p.addEventListener('click',function(){if(CB.onTapPlot)CB.onTapPlot(i);});
+      f.appendChild(p);els.push(p);keys.push('');
+    })(i);}
+    st.appendChild(f);return true;
+  };
+  R.reset=function(){els.forEach(function(p){p.firstChild.textContent='';p.classList.remove('active');});near=-1;};
+  R.avatar=function(){};
+  R.setInput=function(){};
+  R.walkTo=function(){};
+  R.near=function(){return near;};
+  R.setActive=function(i){els.forEach(function(p,k){p.classList.toggle('active',k===i);});};
+  R.walkToPlot=function(i){near=i;if(CB.onNear)CB.onNear(i);setTimeout(function(){if(CB.onArrive)CB.onArrive(i);},0);};
+  R.act=function(){return sleep(150);};
+  R.plant=function(i,k){keys[i]=k;plant(i).textContent='🌱';return sleep(150);};
+  R.water=function(i){return sleep(450);};
+  R.fertilize=function(i){return sleep(450);};
+  R.grow=function(i,ms){plant(i).textContent='🌿';return sleep(ms).then(function(){plant(i).textContent=cropByKey(keys[i]).e;});};
+  R.harvest=function(i){plant(i).textContent='';return sleep(400);};
+  R.reseed=function(i){plant(i).textContent='';};
+  R.wrong=function(){};
+  return R;
+})();
+
+var farm=null;
+function ensureFarm(){
+  if(farm)return;
+  var cb={onTapPlot:onTapPlot,onNear:onNear,onArrive:onArrive};
+  if(Farm3D.init($('stage'),cb)){farm=Farm3D;}
+  else{$('scene').classList.add('flat');farm=Flat;farm.init($('stage'),cb);}
+}
+
+/* =====================================================================
+   สถานะเกม (ผู้เล่น)
+   ===================================================================== */
+var S=null,tickId=null;
+var NET={role:'',peer:null,conn:null,code:'',pid:'',name:'',connected:false,playing:false,leaving:false,
+  lastSent:0,pend:0,finalRank:null,
+  players:{},state:'lobby',duration:600000,endAt:0,hostTimer:0,final:null,bt:0};
+
+function newState(){
+  var pl=[];
+  for(var i=0;i<N_PLOTS;i++){pl.push({st:'empty',tier:0,key:'',w:false,f:false,spec:null,entry:null,ripeAt:0,e:1});}
+  return {gen:(S?S.gen:0)+1,left:600,total:600,deadline:0,
+    score:0,harvest:0,right:0,wrong:0,lost:0,crops:{},
+    level:1,qInLevel:0,levelsDone:0,lvFirst:0,lvMiss:0,lvLost:0,lvWait:false,lvIv:0,
+    usedQ:{},cur:null,locked:true,over:false,log:[],pl:pl,near:-1,busy:false,modal:-1};
+}
+function clean(n){return String(n||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,20);}
+function lsGet(k){try{return localStorage.getItem(k)||'';}catch(e){return '';}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+
+/* ---------- หน้าจอ ---------- */
+function screen(name){
+  $('app').hidden=name!=='game';
+  $('hostView').hidden=name!=='host';
+  $('homeOv').hidden=name!=='home';
+  $('waitOv').hidden=name!=='wait';
+  if(name!=='game'){$('lvOv').hidden=true;$('endOv').hidden=true;$('qOv').hidden=true;$('seedOv').hidden=true;}
+  if(name==='host'||name==='game')$('dressOv').hidden=true;
+}
+function homeMsg(t,kind){var m=$('homeMsg');m.textContent=t||'';m.className='msg'+(kind?' '+kind:'');}
+
+/* ---------- HUD ---------- */
+function updateHud(){
+  $('cLevel').textContent=S.level;$('cScore').textContent=S.score;$('cHarv').textContent=S.harvest;
+  $('cRight').textContent=S.right;$('cWrong').textContent=S.wrong;$('basketN').textContent=S.harvest;
+  $('ribbon').textContent=LVICON[Math.min(S.level,6)]+' ด่าน '+S.level+' · '+S.qInLevel+'/'+PER_LEVEL;
+}
+function updateTimer(){
+  $('tt').textContent=fmt(S.left);
+  $('barfill').style.width=(S.left/S.total*100)+'%';
+  var low=S.left<=60;
+  $('timer').classList.toggle('low',low);$('bar').classList.toggle('low',low);
+}
+function renderPips(){
+  var h='';
+  for(var i=0;i<PER_LEVEL;i++){h+='<i class="'+(i<S.qInLevel?'done':i===S.qInLevel?'cur':'')+'"></i>';}
+  $('pips').innerHTML=h;
+}
+function floatText(el,txt){
+  var s=document.createElement('span');s.className='float';s.textContent=txt;el.appendChild(s);
+  setTimeout(function(){s.remove();},950);
+}
+function setFb(kind,title,sub){
+  var fb=$('fb');fb.className='fb'+(kind==='good'?' good':kind==='bad'?' bad':'');
+  fb.innerHTML='<strong>'+esc(title)+'</strong>'+(sub?'<span>'+esc(sub)+'</span>':'');
+}
+function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function canAct(){return !!(S&&!S.over&&!S.locked&&S.cur);}
+function lockAnswer(){
+  Array.prototype.forEach.call($('ans').querySelectorAll('button,input'),function(x){x.disabled=true;});
+}
+
+/* ---------- ตัวแสดงผลแต่ละรูปแบบ ---------- */
+function rMC(sp,A){
+  var opts=buildOptions(sp);S.cur.opts=opts;
+  var wrap=el('div','opts'+(opts.some(function(o){return o.text.length>14;})?' long':''));
+  opts.forEach(function(o,i){
+    var b=el('button','opt','<span class="ltr">'+LETTERS[i]+'</span><span>'+esc(o.text)+'</span>');
+    b.type='button';b.dataset.i=i;
+    b.addEventListener('click',function(){mcPick(i,b);});
+    wrap.appendChild(b);
+  });
+  A.appendChild(wrap);
+}
+function mcPick(i,b){
+  if(!canAct())return;
+  var c=S.cur,o=c.opts[i];if(c.tried[i])return;
+  if(o.ok){b.classList.add('right');rightDone();}
+  else{c.tried[i]=true;b.classList.add('wrong');b.disabled=true;wrongHit();}
+}
+function rTF(sp,A){
+  var w=el('div','tfwrap');
+  [['✔ ถูก',true],['✖ ผิด',false]].forEach(function(x){
+    var b=el('button','tfbtn',x[0]);b.type='button';
+    b.addEventListener('click',function(){
+      if(!canAct())return;
+      if(x[1]===sp.truth){b.classList.add('right');rightDone();}
+      else{b.classList.add('wrong');b.disabled=true;wrongHit();}
+    });
+    w.appendChild(b);
+  });
+  A.appendChild(w);
+}
+function rTap(sp,A){
+  var w=el('div','words');
+  sp.words.forEach(function(t,i){
+    var b=el('button','wchip',esc(t));b.type='button';
+    b.addEventListener('click',function(){
+      if(!canAct())return;
+      if(sp.tags[i]===sp.target){b.classList.add('right');rightDone();}
+      else{b.classList.add('wrong');b.disabled=true;wrongHit();}
+    });
+    w.appendChild(b);
+  });
+  A.appendChild(w);
+}
+function rMulti(sp,A){
+  var w=el('div','words'),sel={},chips=[];
+  sp.items.forEach(function(it,i){
+    var b=el('button','wchip',esc(it.w));b.type='button';b.setAttribute('aria-pressed','false');
+    b.addEventListener('click',function(){
+      if(!canAct())return;
+      sel[i]=!sel[i];b.setAttribute('aria-pressed',sel[i]?'true':'false');b.classList.toggle('sel',!!sel[i]);
+    });
+    chips.push(b);w.appendChild(b);
+  });
+  A.appendChild(w);
+  var ck=el('button','btn','ตรวจคำตอบ');ck.type='button';
+  ck.addEventListener('click',function(){
+    if(!canAct())return;
+    var good=0,bad=0,miss=0;
+    sp.items.forEach(function(it,i){if(sel[i]&&it.ok)good++;else if(sel[i]&&!it.ok)bad++;else if(!sel[i]&&it.ok)miss++;});
+    if(bad===0&&miss===0&&good>0){
+      sp.items.forEach(function(it,i){if(it.ok){chips[i].classList.remove('sel');chips[i].classList.add('right');}});
+      rightDone();
+    }else{
+      wrongHit('(เลือกถูกแล้ว '+good+' คำ'+(bad?' · มีคำที่ไม่ใช่ปนอยู่':'')+(miss?' · ยังเลือกไม่ครบ':'')+')');
+    }
+  });
+  A.appendChild(ck);
+}
+function rMatch(sp,A){
+  var Ls=shuffle(sp.pairs.map(function(p,i){return {i:i,w:p.w};}));
+  var Rs=shuffle(sp.pairs.map(function(p,i){return {i:i,t:p.t};}));
+  var sel=null,done=0,wrap=el('div','match'),cl=el('div','col'),cr=el('div','col');
+  Ls.forEach(function(x){
+    var b=el('button','wchip',esc(x.w));b.type='button';
+    b.addEventListener('click',function(){
+      if(!canAct()||b.disabled)return;
+      if(sel)sel.classList.remove('sel');
+      sel=b;b._i=x.i;b.classList.add('sel');
+    });
+    cl.appendChild(b);
+  });
+  Rs.forEach(function(x){
+    var b=el('button','wchip',T[x.t]);b.type='button';
+    b.addEventListener('click',function(){
+      if(!canAct()||b.disabled)return;
+      if(!sel){setFb('info','แตะคำทางซ้ายก่อน แล้วแตะชนิดทางขวา','');return;}
+      var li=sel._i;
+      if(sp.pairs[li].t===sp.pairs[x.i].t){
+        sel.classList.remove('sel');sel.classList.add('right');sel.disabled=true;
+        b.classList.add('right');b.disabled=true;sel=null;done++;
+        if(done===sp.pairs.length)rightDone();
+        else setFb('good','ถูกต้อง! เหลืออีก '+(sp.pairs.length-done)+' คู่','');
+      }else{
+        sel.classList.remove('sel');sel=null;
+        b.classList.add('wrong');setTimeout(function(){b.classList.remove('wrong');},500);
+        wrongHit();
+      }
+    });
+    cr.appendChild(b);
+  });
+  wrap.appendChild(cl);wrap.appendChild(cr);A.appendChild(wrap);
+}
+function rSort(sp,A){
+  var pool=el('div','words'),cats=el('div','cats'),sel=null,placed=0;
+  sp.items.forEach(function(it){
+    var b=el('button','wchip',esc(it.w));b.type='button';b._it=it;
+    b.addEventListener('click',function(){
+      if(!canAct())return;
+      if(sel===b){b.classList.remove('sel');sel=null;return;}
+      if(sel)sel.classList.remove('sel');
+      sel=b;b.classList.add('sel');
+    });
+    pool.appendChild(b);
+  });
+  sp.cats.forEach(function(t){
+    var c=el('button','cat','<b>'+T[t]+'</b><div class="placed"></div>');c.type='button';
+    c.addEventListener('click',function(){
+      if(!canAct())return;
+      if(!sel){setFb('info','แตะคำก่อน แล้วค่อยแตะกลุ่ม','');return;}
+      var it=sel._it;
+      if(it.t===t){
+        c.querySelector('.placed').appendChild(el('span','pl',esc(it.w)));
+        sel.remove();sel=null;placed++;
+        if(placed===sp.items.length)rightDone();
+        else setFb('good','ถูกต้อง! เหลืออีก '+(sp.items.length-placed)+' คำ','');
+      }else{
+        var s=sel;s.classList.remove('sel');s.classList.add('wrong');
+        setTimeout(function(){s.classList.remove('wrong');},500);sel=null;
+        wrongHit();
+      }
+    });
+    cats.appendChild(c);
+  });
+  A.appendChild(pool);A.appendChild(cats);
+}
+function rType(sp,A){
+  var row=el('div','typewrap'),inp=el('input','inp');
+  inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
+  inp.setAttribute('aria-label','พิมพ์คำตอบ');inp.setAttribute('enterkeyhint','done');
+  var go=el('button','btn','ตรวจ');go.type='button';
+  function check(){
+    if(!canAct())return;
+    var v=norm(inp.value);if(!v)return;
+    if(sp.accept.some(function(a){return norm(a)===v;}))rightDone();
+    else{wrongHit();inp.select();}
+  }
+  go.addEventListener('click',check);
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();check();}});
+  row.appendChild(inp);row.appendChild(go);A.appendChild(row);
+  if(sp.aid)A.appendChild(el('div','aid',esc(sp.aid)));
+  setTimeout(function(){try{inp.focus({preventScroll:true});}catch(_){}},60);
+}
+
+/* ---------- แปลงปลูก: ปลูก → รดน้ำ → ใส่ปุ๋ย → โต 3 วินาที → เก็บเกี่ยว (ตอบคำถาม) ---------- */
+function actionOf(p){
+  if(p.st==='empty')return 'plant';
+  if(p.st==='seed')return p.w?'fert':'water';
+  if(p.st==='grow')return 'wait';
+  if(p.st==='ripe')return 'harvest';
+  return 'busy';
+}
+function refreshAct(){
+  if(!S||S.over)return;
+  var btn=$('actBtn'),info=$('actInfo'),i=S.near;
+  if(i<0){btn.hidden=true;info.textContent='เดินไปที่แปลงดิน (แตะที่แปลง หรือใช้ปุ่มลูกศร)';return;}
+  var p=S.pl[i],a=actionOf(p),label='',dis=false;
+  if(a==='plant')label='🌱 ปลูกพืช';
+  else if(a==='water')label='💧 รดน้ำ (ฟรี)';
+  else if(a==='fert')label='🧪 ใส่ปุ๋ย (ฟรี)';
+  else if(a==='wait'){label='⏳ กำลังโต… '+Math.max(0,Math.ceil((p.ripeAt-Date.now())/1000))+' วิ';dis=true;}
+  else if(a==='harvest')label='🧺 เก็บเกี่ยว ⭐'+p.tier+' (+'+p.tier+')';
+  else{label='…';dis=true;}
+  var crop=p.key?cropByKey(p.key):null;
+  info.textContent='แปลงที่ '+(i+1)+(crop?' · '+crop.e+' '+crop.n+' ⭐'+p.tier:' · ว่าง');
+  btn.textContent=label;
+  btn.disabled=dis||S.busy||S.modal!==-1||S.lvWait;
+  btn.hidden=false;
+}
+function onNear(i){
+  if(!S)return;
+  S.near=i;
+  if(farm)farm.setActive(i);
+  refreshAct();
+}
+function onArrive(i){doAction(i);}
+function onTapPlot(i){
+  if(!S||S.over||S.busy||S.modal!==-1||S.lvWait)return;
+  if(farm.near()===i)doAction(i);else farm.walkToPlot(i);
+}
+async function doAction(i){
+  if(!S||S.over||S.busy||S.modal!==-1||S.lvWait||i<0)return;
+  var p=S.pl[i],a=actionOf(p);
+  if(a==='plant'){openSeed(i);return;}
+  if(a==='harvest'){openQuestion(i);return;}
+  if(a!=='water'&&a!=='fert')return;
+  var g=S.gen;S.busy=true;refreshAct();
+  try{
+    await guard(farm.act(i),1500);if(S.gen!==g)return;
+    if(a==='water'){await guard(farm.water(i),4000);if(S.gen!==g)return;p.w=true;}
+    else{await guard(farm.fertilize(i),3000);if(S.gen!==g)return;p.f=true;}
+  }finally{if(S&&S.gen===g)S.busy=false;}
+  if(S.gen!==g)return;
+  if(p.w&&p.f&&p.st==='seed')startGrow(i);
+  refreshAct();
+}
+function startGrow(i){
+  var g=S.gen,p=S.pl[i];
+  p.st='grow';p.ripeAt=Date.now()+GROW_MS;
+  guard(farm.grow(i,GROW_MS),GROW_MS+2500).then(function(){
+    var wait=p.ripeAt-Date.now();return wait>0?sleep(wait):0;
+  }).then(function(){
+    if(!S||S.gen!==g||S.over)return;
+    if(p.st==='grow')p.st='ripe';
+    refreshAct();
+  });
+}
+function openSeed(i){
+  S.modal=-2;S.seedFor=i;
+  var list=$('seedList');list.innerHTML='';
+  for(var t=1;t<=5;t++){(function(t){
+    var c=cropByKey(TIERCROP[t]);
+    var b=el('button','seed','<span class="sico emoji">'+c.e+'</span><span><b>'+c.n+'</b><small>คำถามระดับ '+DIFF[Math.min(t+S.level-1,6)]+'</small></span><span class="stars">'+'⭐'.repeat(t)+' +'+t+'</span>');
+    b.type='button';
+    b.addEventListener('click',function(){plantSeed(S.seedFor,t);});
+    list.appendChild(b);
+  })(t);}
+  $('seedOv').hidden=false;$('seedOv').scrollTop=0;
+}
+function closeSeed(){if(S&&S.modal===-2)S.modal=-1;$('seedOv').hidden=true;if(S)refreshAct();}
+async function plantSeed(i,t){
+  if(!S||S.modal!==-2)return;
+  var g=S.gen,p=S.pl[i];
+  p.st='seed';p.tier=t;p.key=TIERCROP[t];p.w=false;p.f=false;p.spec=null;p.entry=null;
+  $('seedOv').hidden=true;S.modal=-1;S.busy=true;$('tip').hidden=true;refreshAct();
+  try{
+    await guard(farm.act(i),1500);if(S.gen!==g)return;
+    await guard(farm.plant(i,p.key),2000);
+  }finally{if(S&&S.gen===g)S.busy=false;}
+  if(S.gen===g)refreshAct();
+}
+
+/* ---------- คำถามตอนเก็บเกี่ยว ---------- */
+function openQuestion(i){
+  var p=S.pl[i];
+  if(!p.spec){
+    var e=Math.min(8,p.tier+S.level-1);
+    p.e=e;p.spec=makeQuestion(e,S.usedQ);
+    p.entry={lv:S.level,n:S.log.length+1,tier:p.tier,q:p.spec.q,ans:p.spec.a,exp:p.spec.exp,mistakes:0,done:false};
+    S.log.push(p.entry);
+  }
+  S.modal=i;S.locked=false;
+  S.cur={spec:p.spec,entry:p.entry,opts:null,tried:{},plot:i};
+  renderQuestion();
+  $('qOv').hidden=false;$('qOv').scrollTop=0;
+  refreshAct();
+}
+function closeQuestion(){
+  if(!S)return;
+  $('qOv').hidden=true;S.modal=-1;S.locked=true;S.cur=null;refreshAct();
+}
+function renderQuestion(){
+  var c=S.cur,sp=c.spec,p=S.pl[c.plot],crop=cropByKey(p.key);
+  $('qno').textContent=crop.e+' '+crop.n+' ⭐'+p.tier;
+  $('fmt').textContent=FMT[sp.type];
+  $('lvbadge').textContent='ด่าน '+S.level+' · ระดับ'+DIFF[Math.min(p.e,6)];
+  $('harvestTag').textContent='ตอบถูกได้ +'+p.tier+' คะแนน · ตอบผิด −'+PENALTY+' คะแนน (ผ่านด่านเมื่อเก็บเกี่ยวครบ '+PER_LEVEL+' ชิ้น)';
+  renderPips();
+  $('qtext').textContent=sp.q;
+  var A=$('ans');A.innerHTML='';
+  ({mc:rMC,tf:rTF,tap:rTap,multi:rMulti,match:rMatch,sort:rSort,type:rType})[sp.type](sp,A);
+  setFb('info',INSTR[sp.type],'ตอบผิดมีคำใบ้ให้ ลองใหม่ได้');
+}
+function rightDone(){
+  var c=S.cur,i=c.plot,p=S.pl[i],pts=p.tier,crop=cropByKey(p.key);
+  S.locked=true;c.entry.done=true;lockAnswer();
+  S.score+=pts;S.harvest++;S.right++;
+  if(c.entry.mistakes===0)S.lvFirst++;
+  S.crops[p.key]=(S.crops[p.key]||0)+1;
+  S.qInLevel++;
+  if(S.qInLevel>=PER_LEVEL)S.levelsDone++;
+  updateHud();renderPips();
+  setFb('good',pick(GOOD)+' '+crop.e+' (+'+pts+' คะแนน)',c.entry.exp);
+  sendProg();
+  harvestSequence(i);
+}
+function wrongHit(extra){
+  var c=S.cur;c.entry.mistakes++;S.wrong++;S.lvMiss++;
+  var cut=Math.min(PENALTY,S.score);S.score-=cut;S.lost+=cut;S.lvLost+=cut;
+  updateHud();
+  var chip=$('chipScore');chip.classList.add('hit');floatText(chip,'−'+PENALTY);
+  setTimeout(function(){chip.classList.remove('hit');},450);
+  farm.wrong(c.plot);
+  setFb('bad',pick(BAD)+' (−'+PENALTY+' คะแนน'+(cut<PENALTY?' คะแนนไม่ต่ำกว่า 0':'')+')','💡 คำใบ้: '+c.spec.hint+(extra?' '+extra:''));
+  sendProg();
+}
+
+/* ---------- เก็บเกี่ยวและผ่านด่าน ---------- */
+async function harvestSequence(i){
+  var g=S.gen,p=S.pl[i],style=HSTYLE[styleOf(S.level)];
+  p.st='busy';p.spec=null;p.entry=null;S.busy=true;
+  refreshAct();
+  await sleep(1100);if(!S||S.gen!==g)return;          // ให้เวลาอ่านเฉลยสั้นๆ
+  $('qOv').hidden=true;S.modal=-1;S.cur=null;
+  try{
+    await guard(farm.act(i),1500);if(S.gen!==g)return;
+    await guard(farm.harvest(i,style),4500);if(S.gen!==g)return;
+  }finally{if(S&&S.gen===g)S.busy=false;}
+  farm.reseed(i);
+  p.st='empty';p.tier=0;p.key='';p.w=false;p.f=false;
+  refreshAct();
+  if(S.over)return;
+  if(S.qInLevel>=PER_LEVEL)showLevelComplete();
+}
+function showLevelComplete(){
+  S.lvWait=true;refreshAct();
+  var f=S.lvFirst,stars=f>=9?3:f>=7?2:1;
+  $('lvTitle').textContent='🎉 ผ่านด่าน '+S.level+' แล้ว!';
+  $('lvStars').innerHTML=[1,2,3].map(function(n){return '<span class="'+(n<=stars?'on':'')+'">★</span>';}).join('');
+  $('lvStars').setAttribute('aria-label','ได้ '+stars+' ดาว จาก 3 ดาว');
+  $('lvFirst').textContent=f+'/'+PER_LEVEL;$('lvMiss').textContent=S.lvMiss;$('lvLost').textContent=S.lvLost;
+  $('lvScore').textContent=S.score;
+  $('lvMsg').textContent=stars===3?'เก่งสุดๆ! แทบไม่พลาดเลย':stars===2?'ทำได้ดีมาก! อีกนิดเดียวก็เต็มแล้ว':'ผ่านแล้ว! ด่านต่อไปลองอ่านคำใบ้ให้ดีๆ นะ';
+  var nl=S.level+1;
+  $('lvNext').textContent='ด่านต่อไป: ด่าน '+nl+' · คำถามทุกระดับพืชจะยากขึ้น · เก็บเกี่ยวแบบ “'+HNAME[styleOf(nl)]+'”';
+  $('lvOv').hidden=false;$('lvOv').scrollTop=0;
+  var sec=6;
+  $('lvAuto').textContent='ไปด่านต่อไปอัตโนมัติใน '+sec+' วินาที (เวลายังเดินอยู่)';
+  clearInterval(S.lvIv);
+  S.lvIv=setInterval(function(){
+    sec--;
+    $('lvAuto').textContent='ไปด่านต่อไปอัตโนมัติใน '+sec+' วินาที (เวลายังเดินอยู่)';
+    if(sec<=0)nextLevel();
+  },1000);
+  setTimeout(function(){try{$('lvBtn').focus({preventScroll:true});}catch(_){}},50);
+}
+function nextLevel(){
+  if(!S||S.over||!S.lvWait)return;
+  S.lvWait=false;clearInterval(S.lvIv);
+  $('lvOv').hidden=true;
+  S.level++;S.qInLevel=0;S.lvFirst=0;S.lvMiss=0;S.lvLost=0;
+  updateHud();refreshAct();
+}
+
+/* ---------- เริ่ม / จบการเล่นของผู้เล่น ---------- */
+function startPlay(remMs,totalMs){
+  if(S)clearInterval(S.lvIv);
+  screen('game');ensureFarm();
+  S=newState();
+  S.total=Math.max(1,Math.ceil((totalMs||remMs)/1000));
+  S.left=Math.max(0,Math.ceil(remMs/1000));
+  S.deadline=Date.now()+remMs;
+  NET.playing=true;NET.finalRank=null;
+  $('endOv').hidden=true;$('lvOv').hidden=true;$('qOv').hidden=true;$('seedOv').hidden=true;
+  $('pName').textContent=NET.name||'ฟาร์มคำนาม 3D';
+  $('tip').hidden=false;
+  farm.reset();farm.avatar(AVCFG);
+  updateHud();updateTimer();refreshAct();
+  clearInterval(tickId);tickId=setInterval(tick,250);
+  sendProg(true);
+}
+function tick(){
+  if(!S||S.over)return;
+  var left=Math.max(0,Math.ceil((S.deadline-Date.now())/1000));
+  if(left!==S.left){S.left=left;updateTimer();}
+  if(left<=0){endGame();return;}
+  if(S.near>=0)refreshAct();
+}
+function endGame(){
+  if(!S||S.over)return;
+  S.over=true;S.locked=true;S.modal=-1;clearInterval(tickId);clearInterval(S.lvIv);
+  S.left=0;updateTimer();lockAnswer();NET.playing=false;
+  if(farm)farm.setInput(0,0);
+  sendProg(true);
+  buildSummary();
+  var net=NET.role==='player';
+  $('rankBox').hidden=!net;$('againBtn').hidden=net;$('endNote').hidden=!net;
+  if(net){$('finalBoard').innerHTML='';$('rankWait').hidden=false;if(NET.finalRank)renderFinal();}
+  $('lvOv').hidden=true;$('qOv').hidden=true;$('seedOv').hidden=true;
+  $('endOv').hidden=false;$('endOv').scrollTop=0;
+  if(!net){setTimeout(function(){try{$('againBtn').focus({preventScroll:true});}catch(_){}},50);}
+}
+
+function buildSummary(){
+  var tot=S.right+S.wrong,acc=tot?Math.round(S.right/tot*100):0;
+  $('sScore').textContent=S.score;$('sHarv').textContent=S.harvest;
+  $('sRight').textContent=S.right;$('sWrong').textContent=S.wrong;$('sAcc').textContent=acc+'%';
+  $('sLv').textContent=S.levelsDone;$('sLost').textContent=S.lost;
+  var cr='';
+  CROPS.forEach(function(c){var n=S.crops[c.k];if(n)cr+='<span><span class="emoji">'+c.e+'</span> '+c.n+' × '+n+'</span>';});
+  $('sCrops').innerHTML=cr||'<span>ยังไม่ได้เก็บผลผลิต ลองเล่นอีกรอบนะ</span>';
+  var msg;
+  if(S.levelsDone>=3&&acc>=75)msg='สุดยอดเกษตรกรคำนาม! ไปได้ไกลถึงด่าน '+S.level+' เลย';
+  else if(S.right>=8)msg='เก่งมาก! อ่านเฉลยด้านล่างแล้วลองเล่นอีกรอบเพื่อไปให้ไกลกว่าเดิม';
+  else msg='ไม่เป็นไรนะ การลองผิดลองถูกคือการเรียนรู้ อ่านเฉลยแล้วมาปลูกกันใหม่!';
+  $('sCheer').textContent=msg;
+  setTab('all');
+}
+function setTab(which){
+  $('tabAll').setAttribute('aria-pressed',which==='all');
+  $('tabMiss').setAttribute('aria-pressed',which==='miss');
+  var html='';
+  S.log.forEach(function(e){
+    var review=e.mistakes>0||!e.done;
+    if(which==='miss'&&!review)return;
+    var cls,st;
+    if(!e.done){cls='pending';st='⏳ ยังไม่ได้ตอบถูกเมื่อหมดเวลา'+(e.mistakes?' (ผิด '+e.mistakes+' ครั้ง)':'');}
+    else if(e.mistakes>0){cls='retry';st='🔁 ตอบถูกหลังลองใหม่ (ผิด '+e.mistakes+' ครั้ง)';}
+    else{cls='ok';st='✅ ตอบถูกตั้งแต่ครั้งแรก';}
+    html+='<div class="rv '+cls+'"><div class="st">ด่าน '+e.lv+' · พืช ⭐'+e.tier+' · ข้อ '+e.n+' · '+st+'</div><div class="q">'+esc(e.q)+'</div><div class="a">คำตอบ: <b>'+esc(e.ans)+'</b></div><div class="e">'+esc(e.exp)+'</div></div>';
+  });
+  if(!html)html='<p>ไม่มีข้อที่ต้องทบทวน เก่งมาก!</p>';
+  $('review').innerHTML=html;
+}
+
+/* =====================================================================
+   อันดับคะแนน (ใช้ร่วมกันทั้งหน้าครูและหน้าผู้เล่น)
+   ===================================================================== */
+function sortPlayers(a){
+  return a.slice().sort(function(x,y){
+    return (y.score-x.score)||(y.right-x.right)||(x.wrong-y.wrong)||(y.level-x.level)||String(x.name).localeCompare(String(y.name),'th');
+  });
+}
+function rowsHtml(list,youPid){
+  var max=1;list.forEach(function(p){if(p.score>max)max=p.score;});
+  var medals=['🥇','🥈','🥉'];
+  return list.map(function(p,i){
+    return '<div class="brow'+(i===0?' top1':'')+(p.pid&&p.pid===youPid?' you':'')+(p.online===false?' off':'')+'">'+
+      '<span class="rk emoji">'+(i<3?medals[i]:(i+1))+'</span>'+
+      '<span class="nm">'+esc(p.name)+(p.pid&&p.pid===youPid?' (คุณ)':'')+'<small>ด่าน '+p.level+' · ถูก '+p.right+' · ผิด '+p.wrong+' · ผลผลิต '+p.harvest+'</small></span>'+
+      '<div class="meter"><i style="width:'+Math.round(p.score/max*100)+'%"></i></div>'+
+      '<b class="sc">'+p.score+'</b></div>';
+  }).join('');
+}
+function renderFinal(){
+  if(!NET.finalRank)return;
+  $('rankWait').hidden=true;
+  $('finalBoard').innerHTML=rowsHtml(NET.finalRank,NET.pid);
+}
+
+/* =====================================================================
+   เครือข่าย (PeerJS: ครูเป็นศูนย์กลาง ผู้เล่นเชื่อมต่อตรงกับเครื่องครู)
+   ===================================================================== */
+function sendProg(force){
+  if(NET.role!=='player'||!NET.conn||!NET.conn.open||!S)return;
+  var now=Date.now();
+  if(force||now-NET.lastSent>350){
+    clearTimeout(NET.pend);NET.pend=0;NET.lastSent=now;
+    try{NET.conn.send({t:'prog',score:S.score,right:S.right,wrong:S.wrong,level:S.level,harvest:S.harvest,lost:S.lost});}catch(e){}
+  }else if(!NET.pend){
+    NET.pend=setTimeout(function(){NET.pend=0;sendProg(true);},350-(now-NET.lastSent));
+  }
+}
+function banner(show){$('netBanner').hidden=!show;}
+
+/* ----- ฝั่งผู้เล่น ----- */
+function joinRoom(){
+  var name=clean($('jName').value),code=($('jCode').value||'').replace(/\D/g,'');
+  if(!name){homeMsg('กรุณาตั้งชื่อก่อนเข้าร่วม','err');return;}
+  if(code.length<4){homeMsg('กรุณาใส่รหัสห้องที่ครูแจ้ง','err');return;}
+  if(!window.Peer){homeMsg('โหลดระบบเชื่อมต่อไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วรีเฟรชหน้านี้ (หรือเลือกฝึกเล่นคนเดียว)','err');return;}
+  lsSet('nfarm-name',name);
+  NET.role='player';NET.code=code;NET.name=name;NET.pid=getPid();NET.leaving=false;
+  $('joinBtn').disabled=true;
+  homeMsg('กำลังเชื่อมต่อห้อง '+code+' …','info');
+  connectPlayer(true);
+}
+function getPid(){
+  var k='nfarm-pid';
+  try{var p=sessionStorage.getItem(k);if(!p){p='p'+Math.random().toString(36).slice(2,10);sessionStorage.setItem(k,p);}return p;}
+  catch(e){return 'p'+Math.random().toString(36).slice(2,10);}
+}
+function connectPlayer(first){
+  try{if(NET.peer)NET.peer.destroy();}catch(e){}
+  var peer=new Peer(),done=false;NET.peer=peer;
+  var to=setTimeout(function(){
+    if(done)return;done=true;
+    if(first){homeMsg('เชื่อมต่อห้องไม่ได้ ตรวจรหัสห้อง/อินเทอร์เน็ต หรือขอให้ครูตรวจว่าห้องยังเปิดอยู่','err');$('joinBtn').disabled=false;}
+    else retryPlayer();
+  },15000);
+  peer.on('open',function(){
+    var conn=peer.connect('nfarm-'+NET.code,{reliable:true});NET.conn=conn;
+    conn.on('open',function(){
+      done=true;clearTimeout(to);NET.connected=true;banner(false);
+      conn.send({t:'join',pid:NET.pid,name:NET.name});
+      if(S&&NET.playing)sendProg(true);
+    });
+    conn.on('data',onPlayerData);
+    conn.on('close',onPlayerClose);
+    conn.on('error',function(){});
+  });
+  peer.on('error',function(e){
+    if(done)return;
+    if(e.type==='peer-unavailable'){
+      done=true;clearTimeout(to);
+      if(first){homeMsg('ไม่พบห้องรหัส '+NET.code+' (ครูอาจยังไม่ได้เปิดห้อง หรือพิมพ์รหัสผิด)','err');$('joinBtn').disabled=false;}
+      else retryPlayer();
+    }else if(first){done=true;clearTimeout(to);homeMsg('เชื่อมต่อไม่ได้ ('+e.type+') ลองใหม่อีกครั้ง','err');$('joinBtn').disabled=false;}
+  });
+}
+function retryPlayer(){
+  if(NET.leaving)return;
+  banner(true);
+  setTimeout(function(){if(!NET.leaving&&!NET.connected)connectPlayer(false);},3000);
+}
+function onPlayerClose(){
+  NET.connected=false;
+  if(NET.leaving)return;
+  banner(true);retryPlayer();
+}
+function onPlayerData(m){
+  if(!m||!m.t)return;
+  if(m.t==='hello'){
+    NET.name=m.name;$('wName').textContent=m.name;$('wCode').textContent=NET.code;$('pName').textContent=m.name;
+    $('wCount').textContent=m.n?'มีผู้เล่นในห้อง '+m.n+' คน':'';
+    $('joinBtn').disabled=false;homeMsg('');
+    if(!NET.playing&&!(S&&!S.over))screen('wait');
+  }else if(m.t==='count'){
+    $('wCount').textContent='มีผู้เล่นในห้อง '+m.n+' คน';
+  }else if(m.t==='start'){
+    if(NET.playing)return;
+    startPlay(m.remaining,m.total);
+  }else if(m.t==='stop'){
+    if(S&&!S.over&&NET.playing)endGame();
+  }else if(m.t==='final'){
+    NET.finalRank=m.rank;
+    if(S&&S.over)renderFinal();
+  }else if(m.t==='lobby'){
+    if(S){clearInterval(tickId);clearInterval(S.lvIv);S.over=true;}
+    NET.playing=false;NET.finalRank=null;
+    $('wCount').textContent=m.n?'มีผู้เล่นในห้อง '+m.n+' คน':'';
+    screen('wait');
+  }
+}
+
+/* ----- ฝั่งครู ----- */
+function showHost(){
+  screen('host');
+  if(!window.Peer){$('hState').textContent='โหลดระบบเชื่อมต่อไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วรีเฟรชหน้านี้';return;}
+  NET.role='host';
+  $('hState').textContent='กำลังสร้างห้อง…';
+  openHostPeer(0);
+}
+function openHostPeer(attempt){
+  var code=String(10000+rand(90000)),peer=new Peer('nfarm-'+code);
+  peer.on('open',function(){NET.peer=peer;NET.code=code;hostReady();});
+  peer.on('connection',onHostConn);
+  peer.on('error',function(e){
+    if(e.type==='unavailable-id'&&attempt<6){try{peer.destroy();}catch(_){}openHostPeer(attempt+1);}
+    else if(!NET.code){$('hState').textContent='เชื่อมต่อเซิร์ฟเวอร์สัญญาณไม่ได้ ('+e.type+') ลองรีเฟรชหน้านี้';}
+  });
+  peer.on('disconnected',function(){try{peer.reconnect();}catch(_){}});
+}
+function joinUrl(){return location.href.split(/[?#]/)[0]+'?room='+NET.code;}
+function hostReady(){
+  $('hCode').textContent=NET.code;
+  var url=joinUrl();$('hLink').value=url;
+  var box=$('hQr');box.innerHTML='';
+  try{if(window.qrcode){var q=window.qrcode(0,'M');q.addData(url);q.make();box.innerHTML='<img alt="QR สำหรับเข้าห้อง" src="'+q.createDataURL(6,2)+'">';}}catch(e){}
+  box.hidden=!box.innerHTML;
+  NET.state='lobby';hostUI();
+}
+function uniqueName(n,pid){
+  var base=clean(n)||'ผู้เล่น',name=base,k=2;
+  function taken(x){return Object.keys(NET.players).some(function(id){return id!==pid&&NET.players[id].name===x;});}
+  while(taken(name)){name=base+' ('+k+')';k++;}
+  return name;
+}
+function remainingMs(){return Math.max(0,NET.endAt-Date.now());}
+function playerCount(){return Object.keys(NET.players).length;}
+function hostBroadcast(msg){
+  Object.keys(NET.players).forEach(function(id){
+    var p=NET.players[id];
+    if(p.conn&&p.conn.open){try{p.conn.send(msg);}catch(e){}}
+  });
+}
+function onHostConn(conn){
+  conn.on('data',function(d){onHostData(conn,d);});
+  conn.on('close',function(){
+    var id=conn._pid;
+    if(id&&NET.players[id]&&NET.players[id].conn===conn){NET.players[id].online=false;scheduleBoard();}
+  });
+  conn.on('error',function(){});
+}
+function onHostData(conn,d){
+  if(!d||!d.t)return;
+  var p;
+  if(d.t==='join'){
+    var id=String(d.pid||'').slice(0,40);if(!id)return;
+    p=NET.players[id];
+    if(!p){p=NET.players[id]={pid:id,name:uniqueName(d.name,id),score:0,right:0,wrong:0,level:1,harvest:0,lost:0,online:true};}
+    p.conn=conn;p.online=true;conn._pid=id;
+    try{conn.send({t:'hello',name:p.name,n:playerCount(),state:NET.state});}catch(e){}
+    if(NET.state==='running'){try{conn.send({t:'start',remaining:remainingMs(),total:NET.duration});}catch(e){}}
+    else if(NET.state==='ended'&&NET.final){try{conn.send({t:'final',rank:NET.final});}catch(e){}}
+    if(NET.state==='lobby')hostBroadcast({t:'count',n:playerCount()});
+    scheduleBoard();
+  }else{
+    p=NET.players[conn._pid];if(!p)return;
+    if(d.t==='rename'){
+      p.name=uniqueName(d.name,p.pid);
+      try{conn.send({t:'hello',name:p.name,n:playerCount(),state:NET.state});}catch(e){}
+      scheduleBoard();
+    }else if(d.t==='prog'&&(NET.state==='running'||NET.state==='ending')){
+      p.score=d.score|0;p.right=d.right|0;p.wrong=d.wrong|0;p.level=d.level|0||1;p.harvest=d.harvest|0;p.lost=d.lost|0;
+      scheduleBoard();
+    }
+  }
+}
+function hostStart(){
+  if(NET.state!=='lobby')return;
+  NET.duration=parseInt($('hDur').value,10)*60000;
+  NET.endAt=Date.now()+NET.duration;NET.state='running';
+  Object.keys(NET.players).forEach(function(id){var p=NET.players[id];p.score=0;p.right=0;p.wrong=0;p.level=1;p.harvest=0;p.lost=0;});
+  hostBroadcast({t:'start',remaining:NET.duration,total:NET.duration});
+  clearInterval(NET.hostTimer);
+  NET.hostTimer=setInterval(function(){
+    var r=remainingMs();$('hTimer').textContent=fmt(Math.ceil(r/1000));
+    if(r<=0)hostFinish();
+  },250);
+  $('hTimer').textContent=fmt(Math.ceil(NET.duration/1000));
+  hostUI();
+}
+function hostFinish(){
+  if(NET.state!=='running')return;
+  clearInterval(NET.hostTimer);$('hTimer').textContent='00:00';
+  NET.state='ending';hostBroadcast({t:'stop'});hostUI();
+  setTimeout(function(){
+    NET.state='ended';
+    NET.final=sortPlayers(Object.keys(NET.players).map(function(id){var p=NET.players[id];
+      return {pid:p.pid,name:p.name,score:p.score,level:p.level,right:p.right,wrong:p.wrong,harvest:p.harvest,lost:p.lost};}));
+    hostBroadcast({t:'final',rank:NET.final});
+    hostUI();
+  },2200);
+}
+function hostNewRound(){
+  if(NET.state!=='ended')return;
+  NET.state='lobby';NET.final=null;
+  Object.keys(NET.players).forEach(function(id){var p=NET.players[id];p.score=0;p.right=0;p.wrong=0;p.level=1;p.harvest=0;p.lost=0;});
+  $('hTimer').textContent=fmt(parseInt($('hDur').value,10)*60);
+  hostBroadcast({t:'lobby',n:playerCount()});
+  hostUI();
+}
+function hostPlayers(){return Object.keys(NET.players).map(function(id){return NET.players[id];});}
+function hostUI(){
+  var st=NET.state,list=hostPlayers();
+  $('hCount').textContent=list.length;$('hOnline').textContent=list.filter(function(p){return p.online;}).length;
+  $('hStart').hidden=st!=='lobby';$('hDur').disabled=st!=='lobby';
+  $('hStop').hidden=st!=='running';$('hNew').hidden=st!=='ended';$('hCsv').hidden=st!=='ended';
+  $('hState').textContent={lobby:'🟡 รอผู้เล่นเข้าร่วม — กด “เริ่มเกม” เมื่อพร้อม',running:'🟢 กำลังเล่น — คะแนนอัปเดตสดด้านขวา',
+    ending:'⏳ หมดเวลา กำลังรวบรวมคะแนนสุดท้าย…',ended:'🏁 จบเกม — สรุปอันดับด้านขวา'}[st];
+  $('hBoardTitle').textContent=st==='lobby'?'ผู้เล่นที่เข้าร่วม':st==='ended'?'🏆 สรุปอันดับ':'📊 คะแนนสด';
+  renderBoard();
+}
+function renderBoard(){
+  var list=sortPlayers(hostPlayers());
+  if(NET.state==='lobby'){
+    $('hBoard').innerHTML=list.length?'<div class="pchips">'+list.map(function(p){return '<span class="pchip'+(p.online?'':' off')+'">'+esc(p.name)+'</span>';}).join('')+'</div>'
+      :'<p class="muted">ยังไม่มีผู้เล่น ให้นักเรียนเปิดลิงก์หรือสแกน QR ด้านซ้าย แล้วใส่ชื่อ</p>';
+  }else{
+    $('hBoard').innerHTML=list.length?rowsHtml(list,null):'<p class="muted">ไม่มีผู้เล่น</p>';
+  }
+  $('hCount').textContent=list.length;$('hOnline').textContent=list.filter(function(p){return p.online;}).length;
+}
+function scheduleBoard(){
+  if(NET.role!=='host'||NET.bt)return;
+  NET.bt=setTimeout(function(){NET.bt=0;renderBoard();},250);
+}
+function exportCsv(){
+  var rows=[['อันดับ','ชื่อ','คะแนน','ด่าน','ตอบถูก','ตอบผิด','ผลผลิต','คะแนนที่ถูกหัก']];
+  sortPlayers(hostPlayers()).forEach(function(p,i){rows.push([i+1,p.name,p.score,p.level,p.right,p.wrong,p.harvest,p.lost]);});
+  var csv='\ufeff'+rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='ผลคะแนน-ฟาร์มคำนาม.csv';document.body.appendChild(a);a.click();a.remove();
+}
+
+/* ----- ฝึกเล่นคนเดียว ----- */
+function startSolo(){
+  NET.role='solo';NET.leaving=true;
+  startPlay(600000,600000);
+}
+
+/* =====================================================================
+   แต่งตัวตัวละคร
+   ===================================================================== */
+var AVCFG=null;
+function normAv(c){
+  var o={};
+  Object.keys(AVLEN).forEach(function(k){var v=(c&&c[k])|0;o[k]=((v%AVLEN[k])+AVLEN[k])%AVLEN[k];});
+  return o;
+}
+function loadAvatar(){var c=null;try{c=JSON.parse(lsGet('nfarm-avatar')||'null');}catch(e){}return normAv(c||AVDEF);}
+function saveAvatar(){lsSet('nfarm-avatar',JSON.stringify(AVCFG));}
+function hx(n){return '#'+('000000'+n.toString(16)).slice(-6);}
+function avatarSvg(c){
+  var skin=hx(AV.skin[c.skin]),hair=hx(AV.hair[c.hair]),shirt=hx(AV.shirt[c.shirt]),pants=hx(AV.pants[c.pants]);
+  var s='<svg viewBox="0 0 120 180" role="img" aria-label="ตัวอย่างตัวละคร" xmlns="http://www.w3.org/2000/svg">';
+  if(c.acc===3)s+='<rect x="82" y="68" width="16" height="40" rx="6" fill="#6d4c41"/>';
+  s+='<rect x="40" y="108" width="17" height="50" rx="4" fill="'+pants+'"/><rect x="63" y="108" width="17" height="50" rx="4" fill="'+pants+'"/>';
+  s+='<rect x="35" y="156" width="24" height="11" rx="5" fill="#5d4037"/><rect x="61" y="156" width="24" height="11" rx="5" fill="#5d4037"/>';
+  s+='<rect x="22" y="66" width="15" height="46" rx="7" fill="'+shirt+'"/><rect x="83" y="66" width="15" height="46" rx="7" fill="'+shirt+'"/>';
+  s+='<circle cx="29" cy="116" r="8" fill="'+skin+'"/><circle cx="91" cy="116" r="8" fill="'+skin+'"/>';
+  s+='<rect x="34" y="62" width="52" height="54" rx="9" fill="'+shirt+'"/>';
+  if(c.acc===2)s+='<rect x="36" y="58" width="48" height="11" rx="5" fill="#e53935"/>';
+  s+='<circle cx="60" cy="40" r="26" fill="'+skin+'"/>';
+  s+='<path d="M34 38 Q34 12 60 12 Q86 12 86 38 Q76 24 60 24 Q44 24 34 38Z" fill="'+hair+'"/>';
+  s+='<circle cx="50" cy="42" r="3.2" fill="#222"/><circle cx="70" cy="42" r="3.2" fill="#222"/>';
+  s+='<path d="M52 52 Q60 59 68 52" stroke="#a0522d" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  if(c.acc===1)s+='<circle cx="50" cy="42" r="8" fill="none" stroke="#222" stroke-width="2"/><circle cx="70" cy="42" r="8" fill="none" stroke="#222" stroke-width="2"/><line x1="58" y1="42" x2="62" y2="42" stroke="#222" stroke-width="2"/>';
+  if(c.hat===1)s+='<ellipse cx="60" cy="22" rx="42" ry="7" fill="#e6c36a"/><path d="M40 22 Q40 3 60 3 Q80 3 80 22Z" fill="#e6c36a"/><rect x="40" y="16" width="40" height="5" fill="#c0392b"/>';
+  if(c.hat===2)s+='<path d="M35 24 Q35 5 60 5 Q85 5 85 24Z" fill="#d32f2f"/><rect x="58" y="20" width="36" height="6" rx="3" fill="#b71c1c"/>';
+  if(c.hat===3)s+='<circle cx="38" cy="18" r="6" fill="#ff80ab"/><circle cx="49" cy="11" r="6" fill="#ffd54f"/><circle cx="60" cy="9" r="6" fill="#ff80ab"/><circle cx="71" cy="11" r="6" fill="#ffd54f"/><circle cx="82" cy="18" r="6" fill="#ff80ab"/>';
+  if(c.hat===4)s+='<path d="M35 26 Q35 4 60 4 Q85 4 85 26Z" fill="#3f51b5"/><circle cx="60" cy="4" r="6" fill="#fff"/>';
+  return s+'</svg>';
+}
+var DRESS=[{k:'skin',label:'สีผิว',sw:AV.skin},{k:'hair',label:'สีผม',sw:AV.hair},{k:'shirt',label:'สีเสื้อ',sw:AV.shirt},
+  {k:'pants',label:'สีกางเกง',sw:AV.pants},{k:'hat',label:'หมวก',names:HATS},{k:'acc',label:'ของประดับ',names:ACCS}];
+function buildDress(){
+  var box=$('dressOpts');box.innerHTML='';
+  DRESS.forEach(function(r){
+    var row=el('div','drow'),list=el('div','dlist');
+    row.appendChild(el('div','dlab',r.label));
+    for(var i=0;i<AVLEN[r.k];i++){(function(i){
+      var b=r.sw?el('button','dsw'):el('button','dchip',r.names[i]);
+      b.type='button';
+      if(r.sw){b.style.background=hx(r.sw[i]);b.setAttribute('aria-label',r.label+' แบบที่ '+(i+1));}
+      b.setAttribute('aria-pressed',AVCFG[r.k]===i?'true':'false');
+      b.addEventListener('click',function(){AVCFG[r.k]=i;saveAvatar();buildDress();if(farm)farm.avatar(AVCFG);});
+      list.appendChild(b);
+    })(i);}
+    row.appendChild(list);box.appendChild(row);
+  });
+  $('avPrev').innerHTML=avatarSvg(AVCFG);
+}
+function openDress(){buildDress();$('dressOv').hidden=false;$('dressOv').scrollTop=0;}
+
+/* =====================================================================
+   การควบคุม: ปุ่มลูกศร / WASD / แตะที่ฟาร์ม
+   ===================================================================== */
+var held={u:0,d:0,l:0,r:0};
+var KEYMAP={ArrowUp:'u',w:'u',W:'u',ArrowDown:'d',s:'d',S:'d',ArrowLeft:'l',a:'l',A:'l',ArrowRight:'r',d:'r',D:'r'};
+function pushInput(){if(farm)farm.setInput(held.r-held.l,held.d-held.u);}
+function clearHeld(){held.u=held.d=held.l=held.r=0;pushInput();}
+function gameKeysActive(){return !!(S&&!S.over&&!$('app').hidden&&S.modal===-1&&!S.lvWait&&$('dressOv').hidden);}
+document.addEventListener('keydown',function(ev){
+  if(ev.ctrlKey||ev.metaKey||ev.altKey)return;
+  var tg=ev.target&&ev.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT')return;
+  if(S&&!S.over&&S.modal>=0&&S.cur&&S.cur.spec.type==='mc'){
+    var n=parseInt(ev.key,10);
+    if(n>=1&&n<=4){var b=$('ans').querySelectorAll('.opt')[n-1];if(b&&!b.disabled)b.click();}
+    return;
+  }
+  if(!gameKeysActive())return;
+  var m=KEYMAP[ev.key];
+  if(m){held[m]=1;pushInput();ev.preventDefault();return;}
+  if((ev.key==='e'||ev.key==='E')&&S.near>=0)doAction(S.near);
+});
+document.addEventListener('keyup',function(ev){var m=KEYMAP[ev.key];if(m){held[m]=0;pushInput();}});
+window.addEventListener('blur',clearHeld);
+[['dUp','u'],['dDown','d'],['dLeft','l'],['dRight','r']].forEach(function(x){
+  var b=$(x[0]);
+  function on(e){held[x[1]]=1;pushInput();if(e&&e.preventDefault)e.preventDefault();}
+  function off(){held[x[1]]=0;pushInput();}
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);
+  b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);
+  b.addEventListener('contextmenu',function(e){e.preventDefault();});
+});
+
+/* =====================================================================
+   เหตุการณ์
+   ===================================================================== */
+$('joinBtn').addEventListener('click',joinRoom);
+$('jCode').addEventListener('keydown',function(e){if(e.key==='Enter')joinRoom();});
+$('jName').addEventListener('keydown',function(e){if(e.key==='Enter'){$('jCode').focus();}});
+$('soloBtn').addEventListener('click',startSolo);
+$('hostBtn').addEventListener('click',showHost);
+$('teacherLink').addEventListener('click',function(){$('teacherBox').hidden=false;$('teacherLink').hidden=true;});
+$('againBtn').addEventListener('click',startSolo);
+$('lvBtn').addEventListener('click',nextLevel);
+$('actBtn').addEventListener('click',function(){if(S&&S.near>=0)doAction(S.near);});
+$('seedCancel').addEventListener('click',closeSeed);
+$('qCancel').addEventListener('click',closeQuestion);
+$('dressBtn').addEventListener('click',openDress);
+$('dressBtn2').addEventListener('click',openDress);
+$('dressDone').addEventListener('click',function(){$('dressOv').hidden=true;});
+$('dressRand').addEventListener('click',function(){
+  Object.keys(AVLEN).forEach(function(k){AVCFG[k]=rand(AVLEN[k]);});
+  saveAvatar();buildDress();if(farm)farm.avatar(AVCFG);
+});
+$('tabAll').addEventListener('click',function(){if(S)setTab('all');});
+$('tabMiss').addEventListener('click',function(){if(S)setTab('miss');});
+$('hStart').addEventListener('click',hostStart);
+$('hStop').addEventListener('click',hostFinish);
+$('hNew').addEventListener('click',hostNewRound);
+$('hCsv').addEventListener('click',exportCsv);
+$('hCopy').addEventListener('click',function(){
+  var v=$('hLink').value;
+  function ok(){$('hCopy').textContent='คัดลอกแล้ว ✓';setTimeout(function(){$('hCopy').textContent='คัดลอก';},1500);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(v).then(ok,function(){$('hLink').select();});}
+  else{$('hLink').select();try{document.execCommand('copy');ok();}catch(e){}}
+});
+function doRename(){
+  var n=clean($('wRename').value);if(!n)return;
+  lsSet('nfarm-name',n);
+  if(NET.conn&&NET.conn.open)NET.conn.send({t:'rename',name:n});
+  $('wRename').value='';
+}
+$('wRenameBtn').addEventListener('click',doRename);
+$('wRename').addEventListener('keydown',function(e){if(e.key==='Enter')doRename();});
+
+/* ---------- เริ่มต้น ---------- */
+(function init(){
+  var qs=new URLSearchParams(location.search);
+  AVCFG=loadAvatar();
+  $('jCode').value=(qs.get('room')||'').replace(/\D/g,'').slice(0,6);
+  $('jName').value=lsGet('nfarm-name');
+  if(qs.has('host')){$('teacherBox').hidden=false;$('teacherLink').hidden=true;}
+  screen('home');
+  if($('jCode').value)setTimeout(function(){try{$('jName').focus();}catch(e){}},100);
+  window.__farmTest={makeQuestion:makeQuestion};
+})();
+
+})();
+</script>
+</body>
+</html>
